@@ -6,17 +6,16 @@ baseline.py -- Baseline experiment for
 
 What this implements (and where it comes from in the proposal)
 --------------------------------------------------------------
-Sec. 2.1  Pre-T0 features only: gap, closing speed, tire compound/age of BOTH
-          attacker and defender, DRS availability, track category, race context.
-Sec. 2.4  Baselines:
-            (1) gap-distance heuristic
-            (2) logistic regression on the full feature set
-            (3) gradient-boosted trees (XGBoost) tuned with grid search AND
+Pre-T0 features only: gap, closing speed, tire compound/age of BOTH attacker and defender, DRS availability, track category, race context.
+Baselines:
+          (1) gap-distance heuristic
+          (2) logistic regression on the full feature set
+          (3) gradient-boosted trees (XGBoost) tuned with grid search AND
                 Bayesian optimization (Optuna), validation PR-AUC as objective.
           The ReAct tuning agent is NOT here -- it is the Ckpt 3 contribution.
           This script saves the grid/Optuna search histories so the agent can
           later be compared on the same fold and budget.
-Sec. 3    Circuit-level train/validation/test split (~20% of circuits held out
+          Circuit-level train/validation/test split (~20% of circuits held out
           as test, untouched during tuning), random split as a secondary
           reference, metrics: ROC-AUC, PR-AUC, F1, calibration error.
 
