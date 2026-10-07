@@ -15,3 +15,4 @@ __pycache__/
 .idea/
 
 # Keep small result files (results/ is committed on purpose)
+data_*/

@@ -67,7 +67,9 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class DetectCfg:
     dt: float = 0.5               # grid step (s)
     enter_gap_s: float = 1.0      # "attempt range" (DRS-style 1 s)
-    cooldown_s: float = 5.0       # must be out of range this long before a new attempt
+    cooldown_s: float = 0.0       # 0 = an attempt starts whenever the attacker is in range and no earlier
+                                  # attempt window is still open. (5 s hid ~95% of real passes in Bahrain 2023:
+                                  # attackers follow within ~1 s for 10-60 s before passing.)
     close_s: float = 3.0          # window for closing speed
     outcome_window_s: float = 40.0
     hold_s: float = 5.0           # a pass must hold this long
@@ -741,8 +743,8 @@ def cmd_selftest(_args):
                   defender_ahead_fn=lambda t: "2" if 72 <= t < 75 else "",
                   att_ahead_fn=lambda t: "" if 72 <= t < 75 else "1")
     ev = detect_attempts(g, cfg)
-    check("pass re-passed within 3 s -> labelled failure (position must HOLD)",
-          len(ev) == 1 and ev[0]["y"] == 0)
+    check("pass re-passed within 3 s -> first attempt labelled failure (position must HOLD)",
+          len(ev) >= 1 and ev[0]["t0_s"] < 65 and ev[0]["y"] == 0)
 
     # d) defender pits during the outcome window -> no label at all
     g = _toy_grid(lambda t: _approach(t), def_valid_fn=lambda t: t < 75)
@@ -752,9 +754,13 @@ def cmd_selftest(_args):
     g = _toy_grid(lambda t: _approach(t), pos_att=1.0, pos_def=5.0)
     check("lapped defender -> excluded", len(detect_attempts(g, cfg)) == 0)
 
-    # f) already glued to the car ahead for the whole window: no fresh entry
+    # f) glued to the car ahead the whole race: attempts must not overlap, none succeed
     g = _toy_grid(lambda t: 0.8)
-    check("DRS-train (never out of range) -> no new attempt", len(detect_attempts(g, cfg)) == 0)
+    ev = detect_attempts(g, cfg)
+    t0s = [e["t0_s"] for e in ev]
+    check("DRS-train (never out of range) -> non-overlapping windows, all failures",
+          len(ev) >= 2 and all(b - a >= cfg.outcome_window_s for a, b in zip(t0s, t0s[1:]))
+          and all(e["y"] == 0 for e in ev))
 
     # g) LEAKAGE TEST: two worlds identical up to ~T0+3s, opposite outcomes.
     def world(success):
@@ -790,7 +796,7 @@ def main():
     b.add_argument("--rounds", nargs="+", default=["1"], help="round numbers, or 'all'")
     b.add_argument("--cache-dir", default="ff1cache")
     b.add_argument("--data-dir", default="data")
-    b.add_argument("--screen-s", type=float, default=3.0,
+    b.add_argument("--screen-s", type=float, default=0.0,
                    help="only compute telemetry for laps where the car is within this many seconds of the car "
                         "ahead at a lap boundary (speed-up); 0 disables")
     b.add_argument("--max-laps-per-driver", type=int, default=None, help="cap for quick tests")
