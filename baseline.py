@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-"""Overtake-attempt success prediction from FastF1 telemetry
-
+"""overtake-attempt success prediction FastF1 data
 features: gap, closing speed, speed difference, DRS state, tire compound and age of attacker and defender, race context, track category
-
 baselines: gap-distance heuristic, logistic regression, XGBoost tuned by grid search, XGBoost tuned by Optuna
-
 evaluation: circuit-level train/val/test split plus a random event-level split of the same sizes as a reference
 metrics: ROC-AUC, PR-AUC, F1
 """
