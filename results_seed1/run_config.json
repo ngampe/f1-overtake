@@ -1,5 +1,5 @@
 {
-  "source": "FastF1 (events from data/)",
+  "source": "FastF1 (data/)",
   "seed": 1,
   "features": [
     "gap_s",
@@ -55,7 +55,6 @@
   "detect_cfg": {
     "dt": 0.5,
     "enter_gap_s": 1.0,
-    "cooldown_s": 0.0,
     "close_s": 3.0,
     "outcome_window_s": 40.0,
     "hold_s": 5.0,
