@@ -324,6 +324,7 @@ def cmd_build(args):
     os.makedirs(args.data_dir, exist_ok=True)
     fastf1.Cache.enable_cache(args.cache_dir)
     cfg = DetectCfg()
+    failed: list[str] = []
     for year in args.years:
         if args.rounds == ["all"]:
             sched = fastf1.get_event_schedule(year, include_testing=False)
@@ -337,15 +338,25 @@ def cmd_build(args):
                 continue
             print(f"[build] {year} round {rnd}: loading session ...")
             t0 = time.time()
-            s = fastf1.get_session(year, rnd, "R")
-            s.load(laps=True, telemetry=True, weather=False, messages=False)
-            grid = build_race_grid(s, cfg, year, rnd, screen_s=args.screen_s,
-                                   max_laps_per_driver=args.max_laps_per_driver)
-            ev = pd.DataFrame(detect_attempts(grid, cfg))
+            try:
+                s = fastf1.get_session(year, rnd, "R")
+                s.load(laps=True, telemetry=True, weather=False, messages=False)
+                grid = build_race_grid(s, cfg, year, rnd, screen_s=args.screen_s,
+                                       max_laps_per_driver=args.max_laps_per_driver)
+                ev = pd.DataFrame(detect_attempts(grid, cfg))
+            except Exception as e:  # noqa: BLE001 -- e.g. cancelled race: log it and keep going
+                msg = f"{year} round {rnd}: {type(e).__name__}: {str(e)[:200]}"
+                print(f"[FAILED] {msg}")
+                failed.append(msg)
+                continue
             ev.to_csv(path, index=False)
             npos = int(ev["y"].sum()) if len(ev) else 0
             print(f"[build] {grid.meta['event']} ({grid.meta['circuit']}): {len(ev)} attempts, "
                   f"{npos} successful -> {path}  [{time.time() - t0:.0f}s]")
+    if failed:
+        print("\n[build] rounds that FAILED (re-run to retry; existing files are skipped):")
+        for m in failed:
+            print("   ", m)
 
 
 # =============================================================================
