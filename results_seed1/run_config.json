@@ -1,0 +1,65 @@
+{
+  "source": "FastF1 (events from data/)",
+  "seed": 1,
+  "features": [
+    "gap_s",
+    "gap_m",
+    "closing_speed_ms",
+    "att_speed_kmh",
+    "speed_diff_kmh",
+    "drs_eligible",
+    "drs_on",
+    "att_compound",
+    "def_compound",
+    "compound_diff",
+    "att_tyre_age",
+    "def_tyre_age",
+    "tyre_age_diff",
+    "lap_number",
+    "laps_remaining",
+    "race_progress",
+    "track_high_speed"
+  ],
+  "splits": {
+    "train": [
+      "Miami",
+      "Barcelona",
+      "Monaco",
+      "Mexico City",
+      "Budapest",
+      "Imola",
+      "Jeddah",
+      "Marina Bay",
+      "Austin",
+      "Melbourne",
+      "Monza",
+      "Spa-Francorchamps",
+      "Montr\u00e9al",
+      "Las Vegas",
+      "Spielberg"
+    ],
+    "val": [
+      "Zandvoort",
+      "Yas Island",
+      "Sakhir",
+      "Suzuka"
+    ],
+    "test": [
+      "Baku",
+      "S\u00e3o Paulo",
+      "Lusail",
+      "Silverstone",
+      "Shanghai"
+    ]
+  },
+  "detect_cfg": {
+    "dt": 0.5,
+    "enter_gap_s": 1.0,
+    "cooldown_s": 0.0,
+    "close_s": 3.0,
+    "outcome_window_s": 40.0,
+    "hold_s": 5.0,
+    "min_speed_ms": 15.0
+  },
+  "optuna_trials": 30
+}

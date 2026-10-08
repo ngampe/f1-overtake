@@ -530,9 +530,10 @@ def fit_eval_all(tr, va, te, feats, grid_params=None, optuna_params=None, n_tria
     Xtr, ytr = tr[feats].to_numpy(float), tr["y"].to_numpy(int)
     Xva, yva = va[feats].to_numpy(float), va["y"].to_numpy(int)
     Xte, yte = te[feats].to_numpy(float), te["y"].to_numpy(int)
-    rows, histories, chosen = [], {}, {}
+    rows, histories, chosen, preds = [], {}, {}, {}
 
     def add(name, s_va, s_te, is_prob=True):
+        preds[name] = np.asarray(s_te, dtype=float)
         thr = best_f1_threshold(yva, s_va)             # threshold picked on validation, never on test
         r = evaluate(yte, s_te, thr, is_prob)
         (rlo, rhi), (plo, phi) = bootstrap_ci(yte, s_te, n_boot, seed) if n_boot else ((np.nan,) * 2, (np.nan,) * 2)
@@ -570,6 +571,7 @@ def fit_eval_all(tr, va, te, feats, grid_params=None, optuna_params=None, n_tria
 
     table = pd.DataFrame(rows)[["model", "n", "pos_rate", "roc_auc", "roc_ci", "pr_auc", "pr_ci",
                                 "f1", "ece", "brier"]]
+    table.attrs["preds"] = preds                       # test-set scores, saved by `run` for the report
     return table, chosen, histories
 
 
@@ -672,6 +674,10 @@ def cmd_run(args):
         b = float(table.loc[table.model == m, "pr_auc"].iloc[0])
         print(f"    {m:22s} {a - b:+.3f}")
 
+    pdf = pd.DataFrame({"circuit": te["circuit"].to_numpy(), "y": te["y"].to_numpy(int)})
+    for k, v in table.attrs.get("preds", {}).items():
+        pdf[k] = v                                     # gap heuristic score is -gap_s (higher = more likely)
+    pdf.to_csv(os.path.join(args.out, "preds_circuit_split.csv"), index=False)
     table.to_csv(os.path.join(args.out, "metrics_circuit_split.csv"), index=False)
     rtable.to_csv(os.path.join(args.out, "metrics_random_split.csv"), index=False)
     with open(os.path.join(args.out, "search_histories.json"), "w") as f:
@@ -796,6 +802,232 @@ def cmd_selftest(_args):
 # =============================================================================
 
 
+# =============================================================================
+# `report`: tables + figures for the Ckpt 2 report, built from saved `run` outputs
+# =============================================================================
+SURFACE, INK, INK2, GRID_C, AXIS_C = "#fcfcfb", "#0b0b0b", "#52514e", "#e6e5e1", "#c9c8c3"
+MODEL_STYLE = {   # categorical slots 1-3 (validated all-pairs); the heuristic is a neutral reference
+    "Gap heuristic":       dict(color="#8a8984", ls="--", marker=None),
+    "Logistic regression": dict(color="#2a78d6", ls="-", marker="o"),
+    "XGBoost (grid)":      dict(color="#eb6834", ls="-", marker="s"),
+    "XGBoost (Optuna)":    dict(color="#1baf7a", ls="-", marker="^"),
+}
+SPLIT_COLORS = {"circuit": "#2a78d6", "random": "#eb6834"}
+
+
+def _md_table(df: pd.DataFrame) -> str:
+    cols = list(df.columns)
+    lines = ["| " + " | ".join(map(str, cols)) + " |", "|" + "|".join("---" for _ in cols) + "|"]
+    for _, r in df.iterrows():
+        lines.append("| " + " | ".join(str(r[c]) for c in cols) + " |")
+    return "\n".join(lines) + "\n"
+
+
+def _style_ax(ax, grid_axis="y"):
+    ax.set_facecolor(SURFACE)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    for sp in ("left", "bottom"):
+        ax.spines[sp].set_color(AXIS_C)
+    ax.tick_params(colors=INK2, labelsize=8, length=3)
+    ax.grid(axis=grid_axis, color=GRID_C, linewidth=0.8)
+    ax.set_axisbelow(True)
+    ax.xaxis.label.set_color(INK2); ax.yaxis.label.set_color(INK2)
+    ax.xaxis.label.set_size(9); ax.yaxis.label.set_size(9)
+
+
+def _title(ax, text):
+    ax.set_title(text, loc="left", fontsize=10.5, color=INK, fontweight="bold", pad=8)
+
+
+def _save(fig, path):
+    fig.savefig(path, dpi=200, facecolor=SURFACE, bbox_inches="tight")
+    print(f"  wrote {path}")
+
+
+def cmd_report(args):
+    import glob
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from sklearn.calibration import calibration_curve
+    from sklearn.metrics import average_precision_score, precision_recall_curve, roc_auc_score, roc_curve
+
+    os.makedirs(args.out, exist_ok=True)
+    dirs = sorted({d for p in args.results for d in glob.glob(p)
+                   if os.path.isfile(os.path.join(d, "metrics_circuit_split.csv"))})
+    if not dirs:
+        sys.exit("No results directories found (need metrics_circuit_split.csv). Run `python baseline.py run` first.")
+    print(f"[report] {len(dirs)} result dir(s): {', '.join(dirs)}")
+    plt.rcParams.update({"font.family": "sans-serif", "figure.facecolor": SURFACE})
+
+    # ---- 1. dataset table + class balance --------------------------------------------------
+    df = load_events(args.data_dir).dropna(subset=["y"])
+    df["race"] = df["year"].astype(int) * 100 + df["round"].astype(int)
+    g = df.groupby("circuit").agg(races=("race", "nunique"), attempts=("y", "size"), successes=("y", "sum"))
+    g["success_rate"] = g["successes"] / g["attempts"]
+    g = g.sort_values("success_rate", ascending=False)
+    tot = pd.DataFrame([dict(races=int(df["race"].nunique()), attempts=len(df), successes=int(df["y"].sum()),
+                             success_rate=float(df["y"].mean()))], index=["ALL"])
+    dtab = pd.concat([g, tot])
+    dtab.index.name = "circuit"
+    dtab.to_csv(os.path.join(args.out, "table_dataset.csv"))
+    out = dtab.reset_index().copy()
+    out["success_rate"] = (out["success_rate"] * 100).round(1).astype(str) + "%"
+    for c in ("races", "attempts", "successes"):
+        out[c] = out[c].astype(int)
+    open(os.path.join(args.out, "table_dataset.md"), "w").write(_md_table(out))
+    print(f"  wrote {args.out}/table_dataset.csv / .md  "
+          f"({int(tot.races.iloc[0])} races, {len(g)} circuits, {len(df)} attempts, "
+          f"{int(df['y'].sum())} successes, {df['y'].mean() * 100:.1f}%)")
+
+    fig, ax = plt.subplots(figsize=(6.4, 0.26 * len(g) + 1.1))
+    gs = g.sort_values("success_rate")
+    ax.barh(gs.index, gs["success_rate"] * 100, height=0.6, color=SPLIT_COLORS["circuit"])
+    ax.axvline(df["y"].mean() * 100, color=INK2, lw=1.2, ls="--", zorder=1)
+    ax.set_ylim(-0.7, len(gs) + 0.2)
+    ax.text(df["y"].mean() * 100 + 0.3, len(gs) - 0.3, f"overall {df['y'].mean() * 100:.1f}%", color=INK2, fontsize=8, va="bottom")
+    for i, (_, r) in enumerate(gs.iterrows()):
+        ax.text(r.success_rate * 100 + 0.25, i, f"{r.success_rate * 100:.1f}%  ({int(r.successes)}/{int(r.attempts)})",
+                va="center", fontsize=7.5, color=INK2, bbox=dict(fc=SURFACE, ec="none", pad=0.6), zorder=3)
+    ax.set_xlabel("Overtake-attempt success rate (%)")
+    ax.set_xlim(0, max(gs["success_rate"]) * 100 * 1.35)
+    ax.tick_params(axis="y", labelsize=8)
+    _style_ax(ax, "x"); ax.grid(axis="y", visible=False)
+    _title(ax, "Attempt success rate by circuit")
+    _save(fig, os.path.join(args.out, "fig_class_balance.png")); plt.close(fig)
+
+    # ---- 2. aggregated metrics over seeds ---------------------------------------------------
+    rows_c, rows_r = [], []
+    for d in dirs:
+        cfg = json.load(open(os.path.join(d, "run_config.json")))
+        c = pd.read_csv(os.path.join(d, "metrics_circuit_split.csv")); c["seed"] = cfg["seed"]; rows_c.append(c)
+        rp = os.path.join(d, "metrics_random_split.csv")
+        if os.path.isfile(rp):
+            r = pd.read_csv(rp); r["seed"] = cfg["seed"]; rows_r.append(r)
+    C = pd.concat(rows_c)
+    R = pd.concat(rows_r) if rows_r else None
+    order = [m for m in MODEL_STYLE if m in set(C["model"])]
+    metrics = ["roc_auc", "pr_auc", "f1", "ece", "brier"]
+    num, txt = [], []
+    for m in order:
+        cm = C[C.model == m]
+        rn, rt = dict(model=m, n_splits=len(cm)), dict(model=m)
+        for k in metrics:
+            v = cm[k].astype(float)
+            rn[k + "_mean"], rn[k + "_sd"] = v.mean(), v.std(ddof=1) if len(v) > 1 else np.nan
+            rt[k] = "n/a" if v.isna().all() else (f"{v.mean():.3f} ± {v.std(ddof=1):.3f}" if len(v) > 1 else f"{v.mean():.3f}")
+        if R is not None:
+            rm = R[R.model == m]
+            gap = rm.set_index("seed")["pr_auc"] - cm.set_index("seed")["pr_auc"]
+            rn["pr_auc_random_mean"], rn["pr_auc_random_sd"] = rm["pr_auc"].mean(), rm["pr_auc"].std(ddof=1)
+            rn["pr_gap_mean"], rn["pr_gap_sd"] = gap.mean(), gap.std(ddof=1)
+            rt["PR-AUC random split"] = f"{rm['pr_auc'].mean():.3f}"
+            rt["PR-AUC gap (random - circuit)"] = f"{gap.mean():+.3f} ± {gap.std(ddof=1):.3f}" if len(gap) > 1 else f"{gap.mean():+.3f}"
+            # circuit difficulty inflates every model's gap; subtracting logistic regression's gap (a model that
+            # cannot memorize circuits as easily) isolates the extra gap that looks like memorization
+            lr_c = C[C.model == "Logistic regression"].set_index("seed")["pr_auc"]
+            lr_r = R[R.model == "Logistic regression"].set_index("seed")["pr_auc"]
+            ex = gap - (lr_r - lr_c)
+            rn["pr_gap_vs_lr_mean"], rn["pr_gap_vs_lr_sd"] = ex.mean(), ex.std(ddof=1)
+            rt["Extra gap vs logistic regression"] = (f"{ex.mean():+.3f} ± {ex.std(ddof=1):.3f}" if len(ex) > 1 else f"{ex.mean():+.3f}")
+        num.append(rn); txt.append(rt)
+    pd.DataFrame(num).to_csv(os.path.join(args.out, "table_results.csv"), index=False)
+    T = pd.DataFrame(txt).rename(columns=dict(roc_auc="ROC-AUC", pr_auc="PR-AUC", f1="F1", ece="ECE", brier="Brier"))
+    open(os.path.join(args.out, "table_results.md"), "w").write(
+        f"Circuit-level held-out test, mean ± sd over {len(dirs)} different circuit splits.\n\n" + _md_table(T))
+    print(f"  wrote {args.out}/table_results.csv / .md  (mean ± sd over {len(dirs)} splits)")
+    print("\n" + T.to_string(index=False) + "\n")
+
+    # ---- 3. memorization figure (circuit vs random split) -----------------------------------
+    if R is not None:
+        fig, ax = plt.subplots(figsize=(6.4, 3.4))
+        x = np.arange(len(order)); w = 0.36; tops = []
+        for j, (key, lab, df_) in enumerate((("circuit", "Circuit-level split (unseen circuits)", C),
+                                              ("random", "Random event split (reference)", R))):
+            mu = [df_[df_.model == m]["pr_auc"].mean() for m in order]
+            sd = [df_[df_.model == m]["pr_auc"].std(ddof=1) if (df_.model == m).sum() > 1 else 0 for m in order]
+            xs = x + (j - 0.5) * (w + 0.02)
+            ax.bar(xs, mu, width=w, color=SPLIT_COLORS[key], label=lab)
+            ax.errorbar(xs, mu, yerr=sd, fmt="none", ecolor=INK2, elinewidth=1, capsize=2)
+            for xi, v, e in zip(xs, mu, sd):
+                ax.text(xi, v + (e if np.isfinite(e) else 0) + 0.012, f"{v:.2f}", ha="center", fontsize=8, color=INK2)
+            tops.append(max(m_ + (e if np.isfinite(e) else 0) for m_, e in zip(mu, sd)))
+        ax.set_xticks(x); ax.set_xticklabels(order, fontsize=8)
+        ax.axhline(float(C["pos_rate"].mean()), color=INK2, lw=1, ls=":", label="Chance (positive rate)")
+        ax.set_ylabel("PR-AUC"); _style_ax(ax); ax.set_ylim(0, max(tops) * 1.18)
+        ax.legend(frameon=False, fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=1, labelcolor=INK2)
+        _title(ax, "PR-AUC: unseen circuits vs random event split")
+        _save(fig, os.path.join(args.out, "fig_split_comparison.png")); plt.close(fig)
+
+    # ---- 4. ROC / PR / calibration from saved test predictions ------------------------------
+    pdir = args.curve_dir or next((d for d in dirs if os.path.isfile(os.path.join(d, "preds_circuit_split.csv"))), None)
+    if pdir is None:
+        print("  [skip] ROC/PR/calibration: no preds_circuit_split.csv found. Re-run `python baseline.py run` "
+              "(this version saves test predictions), then run `report` again.")
+    else:
+        P = pd.read_csv(os.path.join(pdir, "preds_circuit_split.csv"))
+        y = P["y"].to_numpy(int)
+        seed = json.load(open(os.path.join(pdir, "run_config.json")))["seed"]
+        fig, axs = plt.subplots(1, 2, figsize=(9.0, 3.8))
+        for m in order:
+            st = MODEL_STYLE[m]; sc = P[m].to_numpy(float)
+            pr, rc, _ = precision_recall_curve(y, sc)[0:3]
+            ap = average_precision_score(y, sc); au = roc_auc_score(y, sc)
+            fpr, tpr, _ = roc_curve(y, sc)
+            axs[0].plot(rc, pr, color=st["color"], ls=st["ls"], lw=2, label=f"{m} (AP {ap:.2f})")
+            axs[1].plot(fpr, tpr, color=st["color"], ls=st["ls"], lw=2, label=f"{m} (AUC {au:.2f})")
+        axs[0].axhline(y.mean(), color=INK2, lw=1, ls=":"); axs[0].text(0.02, y.mean() + 0.012, "chance", ha="left", fontsize=7.5, color=INK2)
+        axs[1].plot([0, 1], [0, 1], color=INK2, lw=1, ls=":")
+        axs[0].set_xlabel("Recall"); axs[0].set_ylabel("Precision"); axs[1].set_xlabel("False-positive rate"); axs[1].set_ylabel("True-positive rate")
+        for a, t in zip(axs, (f"Precision-recall, unseen circuits (split seed {seed})", "ROC, unseen circuits")):
+            _style_ax(a, "both"); _title(a, t); a.set_xlim(0, 1); a.set_ylim(0, 1.02)
+            a.legend(frameon=False, fontsize=7.5, loc="upper center", bbox_to_anchor=(0.5, -0.17), ncol=2, labelcolor=INK2)
+        fig.tight_layout(); _save(fig, os.path.join(args.out, "fig_roc_pr.png")); plt.close(fig)
+
+        fig, ax = plt.subplots(figsize=(4.8, 4.2))
+        hi = 0.0
+        for m in order:
+            if m == "Gap heuristic":
+                continue
+            st = MODEL_STYLE[m]
+            fo, mp = calibration_curve(y, P[m].to_numpy(float), n_bins=8, strategy="quantile")
+            hi = max(hi, fo.max(), mp.max())
+            ax.plot(mp, fo, color=st["color"], lw=2, marker=st["marker"], ms=7, mec=SURFACE, mew=1.5, label=m)
+        hi = min(1.0, hi * 1.1 + 0.02)
+        ax.plot([0, hi], [0, hi], color=INK2, lw=1, ls=":", label="Perfect calibration")
+        ax.set_xlim(0, hi); ax.set_ylim(0, hi)
+        ax.set_xlabel("Mean predicted probability (8 quantile bins)"); ax.set_ylabel("Observed success rate")
+        _style_ax(ax, "both"); _title(ax, "Calibration on unseen circuits")
+        ax.legend(frameon=False, fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=2, labelcolor=INK2)
+        _save(fig, os.path.join(args.out, "fig_calibration.png")); plt.close(fig)
+
+    # ---- 5. hyper-parameter search efficiency (motivates the Ckpt 3 agent) ------------------
+    H = {"grid": [], "optuna": []}
+    for d in dirs:
+        hp = os.path.join(d, "search_histories.json")
+        if os.path.isfile(hp):
+            hist = json.load(open(hp))["histories"]
+            if "grid" in hist and "optuna" in hist:
+                g_, o_ = [t["best_so_far"] for t in hist["grid"]], [t["best_so_far"] for t in hist["optuna"]]
+                ref = max(g_[-1], o_[-1])                  # best validation PR-AUC either method found on this split
+                H["grid"].append([v - ref for v in g_]); H["optuna"].append([v - ref for v in o_])
+    if all(H.values()):
+        fig, ax = plt.subplots(figsize=(6.4, 3.6))
+        for k, lab, m in (("grid", "Grid search (fixed order)", "XGBoost (grid)"), ("optuna", "Optuna (TPE)", "XGBoost (Optuna)")):
+            L = min(len(h) for h in H[k]); A = np.array([h[:L] for h in H[k]])
+            xs = np.arange(1, L + 1); col = MODEL_STYLE[m]["color"]
+            if len(A) > 1:
+                ax.fill_between(xs, A.min(0), A.max(0), color=col, alpha=0.15, lw=0)
+            ax.plot(xs, A.mean(0), color=col, lw=2, label=f"{lab}  [{L} configs]")
+        ax.axhline(0, color=INK2, lw=1, ls=":")
+        ax.set_xlabel("Configurations evaluated"); ax.set_ylabel("Best validation PR-AUC so far,\nrelative to best found (0 = best)")
+        _style_ax(ax, "both"); _title(ax, f"Tuning progress (mean and range over {len(dirs)} splits)")
+        ax.legend(frameon=False, fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=2, labelcolor=INK2)
+        _save(fig, os.path.join(args.out, "fig_search_history.png")); plt.close(fig)
+    print(f"\n[report] done -> {args.out}/")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -824,6 +1056,14 @@ def main():
     r.add_argument("--optuna-trials", type=int, default=30)
     r.add_argument("--n-boot", type=int, default=200)
     r.set_defaults(fn=cmd_run)
+
+    rp = sub.add_parser("report", help="build Ckpt 2 tables + figures from saved `run` outputs")
+    rp.add_argument("--results", nargs="+", default=["results", "results_seed*"],
+                    help="result directories or glob patterns (one per circuit split / seed)")
+    rp.add_argument("--data-dir", default="data")
+    rp.add_argument("--out", default="report")
+    rp.add_argument("--curve-dir", default=None, help="which result dir to draw ROC/PR/calibration from")
+    rp.set_defaults(fn=cmd_report)
 
     args = ap.parse_args()
     args.fn(args)
