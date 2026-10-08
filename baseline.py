@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-"""Overtake-attempt success prediction from FastF1 telemetry.
+"""Overtake-attempt success prediction from FastF1 telemetry
 
-Features (all measured at or before attempt start T0): gap, closing speed, speed difference,
-DRS state, tyre compound and age of attacker and defender, race context, track category.
+features: gap, closing speed, speed difference, DRS state, tire compound and age of attacker and defender, race context, track category
 
-Baselines: gap-distance heuristic, logistic regression, XGBoost tuned by grid search,
-XGBoost tuned by Optuna (both tuned on validation PR-AUC).
+baselines: gap-distance heuristic, logistic regression, XGBoost tuned by grid search, XGBoost tuned by Optuna
 
-Evaluation: circuit-level train/val/test split (unseen circuits), plus a random event-level
-split of the same sizes as a reference. Metrics: ROC-AUC, PR-AUC, F1, ECE, Brier.
+evaluation: circuit-level train/val/test split plus a random event-level split of the same sizes as a reference
+metrics: ROC-AUC, PR-AUC, F1
 """
 from __future__ import annotations
 
@@ -138,8 +136,8 @@ def _lap_is_valid(lap) -> bool:
 
 
 def _screen_laps(laps: pd.DataFrame, screen_s: float):
-    """(driver, lap) pairs worth loading: both cars of any pair within screen_s at a lap
-    boundary, for that lap and the next. None disables screening."""
+    """(driver, lap) pairs  both cars of any pair within screen_s at a lap
+    boundary"""
     if screen_s <= 0:
         return None
     L = laps[["DriverNumber", "LapNumber", "Time", "Position"]].copy()
@@ -278,7 +276,7 @@ def load_events(data_dir: str) -> pd.DataFrame:
 
 
 def add_track_category(df: pd.DataFrame, train_circuits) -> pd.DataFrame:
-    """High-speed vs technical: circuit average speed >= median over TRAINING circuits only."""
+    """high speed vs technical"""
     if "track_high_speed" in df.columns:
         return df
     cs = df.groupby("circuit")["track_avg_speed"].mean()
@@ -302,7 +300,7 @@ def circuit_split(df: pd.DataFrame, test_frac=0.2, val_frac=0.2, seed=0) -> dict
         split = dict(train=perm[n_test + n_val:], val=perm[n_test:n_test + n_val], test=perm[:n_test])
         if all(df[df.circuit.isin(c)]["y"].nunique() == 2 for c in split.values()):
             return split
-    sys.exit("No circuit split has both classes in every part; build more data.")
+    sys.exit("build more data.")
 
 
 def random_split(df: pd.DataFrame, n_val: int, n_test: int, seed=0):
@@ -335,7 +333,7 @@ def evaluate(y, s, thr, is_prob=True) -> dict:
 
 
 def bootstrap_ci(y, s, n_boot=200, seed=0):
-    """Event-level bootstrap; ignores within-race correlation, so optimistic."""
+    """event-level ignores in race correlation"""
     from sklearn.metrics import average_precision_score, roc_auc_score
     rng = np.random.default_rng(seed)
     y, s = np.asarray(y), np.asarray(s)
@@ -414,7 +412,7 @@ def optuna_search(Xtr, ytr, Xva, yva, n_trials=30, seed=0):
 
 
 def fit_eval_all(tr, va, te, feats, params=None, n_trials=30, n_boot=200, seed=0):
-    """Fit and score the four baselines. Given `params`, tuning is skipped and they are reused."""
+    """fit and score the four baselines"""
     Xtr, ytr = tr[feats].to_numpy(float), tr["y"].to_numpy(int)
     Xva, yva = va[feats].to_numpy(float), va["y"].to_numpy(int)
     Xte, yte = te[feats].to_numpy(float), te["y"].to_numpy(int)
@@ -448,7 +446,7 @@ def fit_eval_all(tr, va, te, feats, params=None, n_trials=30, n_boot=200, seed=0
 
 
 def make_synthetic(n_circuits=10, per_circuit=120, seed=0) -> pd.DataFrame:
-    """Fake data for pipeline smoke tests only."""
+    """testing data smoke"""
     rng = np.random.default_rng(seed)
     rows = []
     for c in range(n_circuits):
@@ -479,7 +477,7 @@ def make_synthetic(n_circuits=10, per_circuit=120, seed=0) -> pd.DataFrame:
 
 def cmd_run(args):
     if args.synthetic:
-        print("SYNTHETIC DATA: pipeline smoke test only, not real results.\n")
+        print("functional test only not real results.\n")
         df, source = make_synthetic(seed=args.seed), "synthetic"
     else:
         df, source = load_events(args.data_dir), f"FastF1 ({args.data_dir}/)"
@@ -505,12 +503,12 @@ def cmd_run(args):
     for k, v in chosen.items():
         print(f"  {k}: {json.dumps({a: (round(b, 4) if isinstance(b, float) else b) for a, b in v.items()})}")
 
-    print("\nRandom event split, same sizes (reference)")
+    print("\nrandom event split, same sizes")
     rtr, rva, rte = random_split(df, len(va), len(te), args.seed)
     rtable, _, _, _ = fit_eval_all(rtr, rva, rte, feats, params=chosen, n_boot=0, seed=args.seed)
     print(rtable.drop(columns=["roc_ci", "pr_ci"]).to_string(**fmt))
 
-    print("\nPR-AUC gap (random - circuit)")
+    print("\nPR-AUC ga")
     for m in table["model"]:
         gap = rtable.loc[rtable.model == m, "pr_auc"].iloc[0] - table.loc[table.model == m, "pr_auc"].iloc[0]
         print(f"  {m:22s} {gap:+.3f}")
@@ -525,12 +523,11 @@ def cmd_run(args):
     with open(os.path.join(args.out, "run_config.json"), "w") as f:
         json.dump(dict(source=source, seed=args.seed, features=feats, splits=split,
                        detect_cfg=DetectCfg().__dict__, optuna_trials=args.optuna_trials), f, indent=2)
-    print(f"\nSaved to {args.out}/")
+    print(f"\nsaved to {args.out}/")
 
 
 def _toy_grid(gap_fn, defender_ahead_fn=None, att_ahead_fn=None, def_valid_fn=None,
               pos_att=2.0, pos_def=1.0, T=300.0, cfg=DetectCfg()):
-    """Defender '1' and attacker '2' at a constant 250 km/h; gap_fn(t) gives the gap in seconds."""
     t = np.arange(0, T, cfg.dt)
     n, spd = len(t), 250.0
 
@@ -605,9 +602,9 @@ def cmd_selftest(_args):
 
     e1, e0 = detect_attempts(clean_pass(), cfg)[0], detect_attempts(drop_back(), cfg)[0]
     diff = [k for k in e1 if k != "y" and not (pd.isna(e1[k]) and pd.isna(e0[k])) and e1[k] != e0[k]]
-    check("features identical when only the outcome differs (no leakage)", e1["y"] != e0["y"] and not diff)
+    check("features identical (no leakage)", e1["y"] != e0["y"] and not diff)
     if diff:
-        print(f"         differing fields: {diff}")
+        print(f"         different fields: {diff}")
 
     print(f"\n{sum(results)}/{len(results)} passed")
     sys.exit(0 if all(results) else 1)
@@ -674,12 +671,12 @@ def cmd_report(args):
     dirs = sorted({d for p in args.results for d in glob.glob(p)
                    if os.path.isfile(os.path.join(d, "metrics_circuit_split.csv"))})
     if not dirs:
-        sys.exit("No results directories with metrics_circuit_split.csv. Run `run` first.")
+        sys.exit("No results metrics_circuit_split.csv. Run `run` first.")
     print(f"[report] {len(dirs)} result dir(s): {', '.join(dirs)}")
     plt.rcParams.update({"font.family": "sans-serif", "figure.facecolor": SURFACE})
     out_path = lambda name: os.path.join(args.out, name)  # noqa: E731
 
-    # Dataset table and per-circuit success rate
+    #dataset table and success rate
     df = load_events(args.data_dir).dropna(subset=["y"])
     df["race"] = df["year"].astype(int) * 100 + df["round"].astype(int)
     rate = df["y"].mean()
@@ -716,7 +713,7 @@ def cmd_report(args):
     ax.grid(axis="y", visible=False)
     _save(fig, out_path("fig_class_balance.png"))
 
-    # Metrics aggregated over result dirs (one per circuit split seed)
+    # metrics 
     rows_c, rows_r = [], []
     for d in dirs:
         seed = json.load(open(os.path.join(d, "run_config.json")))["seed"]
@@ -738,7 +735,6 @@ def cmd_report(args):
         if R is not None:
             rm = R[R.model == m]
             gap = rm.set_index("seed")["pr_auc"] - cm.set_index("seed")["pr_auc"]
-            # Subtracting logistic regression's gap isolates the extra gap attributable to memorization.
             lr_c = C[C.model == "Logistic regression"].set_index("seed")["pr_auc"]
             lr_r = R[R.model == "Logistic regression"].set_index("seed")["pr_auc"]
             ex = gap - (lr_r - lr_c)
@@ -756,7 +752,7 @@ def cmd_report(args):
         f.write(f"Circuit-level held-out test, mean ± sd over {len(dirs)} circuit splits.\n\n" + _md_table(T))
     print(f"  wrote table_results.csv/.md\n\n{T.to_string(index=False)}\n")
 
-    # Circuit vs random split PR-AUC
+    #circuit vs random split PR-AUC
     if R is not None:
         fig, ax = plt.subplots(figsize=(6.4, 3.4))
         x, w, tops = np.arange(len(order)), 0.36, []
@@ -779,7 +775,7 @@ def cmd_report(args):
         _legend(ax, -0.12, ncol=1)
         _save(fig, out_path("fig_split_comparison.png"))
 
-    # ROC, PR and calibration from saved test predictions
+    # ROC, PR and calibration from test
     pdir = args.curve_dir or next((d for d in dirs if os.path.isfile(os.path.join(d, "preds_circuit_split.csv"))), None)
     if pdir is None:
         print("  [skip] no preds_circuit_split.csv found for ROC/PR/calibration")
