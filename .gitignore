@@ -1,18 +1,18 @@
-# FastF1 raw cache (GBs) and built dataset
+# FastF1 cache
 ff1cache/
 data/
 
-# Python
+#python
 .venv/
 venv/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
-# OS / editor
+#editor
 .DS_Store
 .vscode/
 .idea/
 
-# Keep small result files (results/ is committed on purpose)
+#keep small result files
 data_*/
