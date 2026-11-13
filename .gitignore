@@ -16,3 +16,4 @@ __pycache__/
 
 #keep small result files
 data_*/
+results_mocktest/

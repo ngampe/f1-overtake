@@ -1,0 +1,277 @@
+[run 0 step 1] THOUGHT: 
+  ACTION: get_history({})
+  OBS: val_pr_auc=nan best=nan
+[run 0 step 2] THOUGHT: Thought: Starting with a standard, balanced baseline configuration for tabular data with class imbalance.
+max_depth=4, learning_rate=0.1, n_estimators=150, min_child_weight=3, subsample=0.8, colsample_bytree=0.8, reg_lambda=1.0, reg_alpha=0.01.
+  ACTION: evaluate_config({"reg_alpha": 0.01, "min_child_weight": 3, "max_depth": 4, "colsample_bytree": 0.8, "reg_lambda": 1, "learning_rate": 0.1, "subsample": 0.8, "n_estimators": 150})
+  OBS: val_pr_auc=0.2935 best=0.2935
+[run 0 step 3] THOUGHT: Thought: Testing a shallower tree (max_depth=3) with lower learning rate (0.05), higher min_child_weight (5), and moderate L1/L2 regularization to prevent overfitting on the minority class.
+  ACTION: evaluate_config({"min_child_weight": 5, "reg_lambda": 2, "max_depth": 3, "learning_rate": 0.05, "subsample": 0.8, "n_estimators": 250, "reg_alpha": 0.1, "colsample_bytree": 0.7})
+  OBS: val_pr_auc=0.2955 best=0.2955
+[run 0 step 4] THOUGHT: Thought: Shallower trees helped. Testing depth 2 (very shallow) with slightly more trees (350) and lower learning rate (0.04) to see if simple additive models generalize better.
+  ACTION: evaluate_config({"reg_alpha": 0.05, "colsample_bytree": 0.75, "n_estimators": 350, "max_depth": 2, "reg_lambda": 3, "learning_rate": 0.04, "min_child_weight": 6, "subsample": 0.85})
+  OBS: val_pr_auc=0.2742 best=0.2955
+[run 0 step 5] THOUGHT: Thought: Depth 2 was underfitting (0.274 vs 0.295). Let's test depth 4 with conservative settings (lr=0.04, min_child_weight=5, subsample=0.75, colsample_bytree=0.7, reg_lambda=2.0, reg_alpha=0.1, n_estimators=220).
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "reg_alpha": 0.1, "min_child_weight": 5, "subsample": 0.75, "learning_rate": 0.04, "reg_lambda": 2, "max_depth": 4, "n_estimators": 220})
+  OBS: val_pr_auc=0.3097 best=0.3097
+[run 0 step 6] THOUGHT: Thought: Trial 4 showed strong improvement (PR-AUC 0.3097) at depth 4. Let's test depth 5 with slightly stronger regularization (min_child_weight=6, reg_lambda=3.0, reg_alpha=0.2, lr=0.03, n_estimators=200) to see if deeper interactions help without overfitting.
+  ACTION: evaluate_config({"reg_alpha": 0.2, "max_depth": 5, "n_estimators": 200, "colsample_bytree": 0.7, "reg_lambda": 3, "learning_rate": 0.03, "min_child_weight": 6, "subsample": 0.75})
+  OBS: val_pr_auc=0.3063 best=0.3097
+[run 0 step 7] THOUGHT: Thought: Testing min_child_weight=7 on the promising depth 4 setup to see if requiring more samples per leaf improves generalization on the minority class.
+  ACTION: evaluate_config({"reg_alpha": 0.1, "n_estimators": 220, "colsample_bytree": 0.7, "min_child_weight": 7, "max_depth": 4, "subsample": 0.75, "learning_rate": 0.04, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3048 best=0.3097
+[run 0 step 8] THOUGHT: Thought: min_child_weight=7 slightly reduced score compared to 5. Testing min_child_weight=4 to see if 4 or 5 is the peak.
+  ACTION: evaluate_config({"reg_lambda": 2, "max_depth": 4, "n_estimators": 220, "learning_rate": 0.04, "reg_alpha": 0.1, "min_child_weight": 4, "colsample_bytree": 0.7, "subsample": 0.75})
+  OBS: val_pr_auc=0.3105 best=0.3105
+[run 0 step 9] THOUGHT: Thought: min_child_weight=4 improved the score to 0.3105. Testing min_child_weight=3 with other parameters identical to see if the optimal leaf size is 3 or 4.
+  ACTION: evaluate_config({"learning_rate": 0.04, "subsample": 0.75, "reg_alpha": 0.1, "reg_lambda": 2, "max_depth": 4, "n_estimators": 220, "colsample_bytree": 0.7, "min_child_weight": 3})
+  OBS: val_pr_auc=0.3085 best=0.3105
+[run 0 step 10] THOUGHT: Thought: min_child_weight=4 is optimal. Now testing colsample_bytree=0.6 (down from 0.7) to see if more feature subsampling reduces correlation between trees and improves PR-AUC.
+  ACTION: evaluate_config({"colsample_bytree": 0.6, "learning_rate": 0.04, "reg_lambda": 2, "reg_alpha": 0.1, "max_depth": 4, "min_child_weight": 4, "n_estimators": 220, "subsample": 0.75})
+  OBS: val_pr_auc=0.3040 best=0.3105
+[run 0 step 11] THOUGHT: Thought: colsample_bytree=0.6 decreased PR-AUC. Now testing colsample_bytree=0.8 with Trial 7's baseline.
+  ACTION: evaluate_config({"min_child_weight": 4, "reg_lambda": 2, "subsample": 0.75, "n_estimators": 220, "reg_alpha": 0.1, "learning_rate": 0.04, "max_depth": 4, "colsample_bytree": 0.8})
+  OBS: val_pr_auc=0.3002 best=0.3105
+[run 0 step 12] THOUGHT: Thought: colsample_bytree around 0.7 appears optimal. Next, let's test subsample variation: testing subsample=0.85 (compared to 0.75).
+  ACTION: evaluate_config({"max_depth": 4, "reg_alpha": 0.1, "colsample_bytree": 0.7, "n_estimators": 220, "reg_lambda": 2, "learning_rate": 0.04, "subsample": 0.85, "min_child_weight": 4})
+  OBS: val_pr_auc=0.3085 best=0.3105
+[run 0 step 13] THOUGHT: Thought: Testing subsample=0.65 to see if lower subsample helps compared to 0.75.
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "learning_rate": 0.04, "n_estimators": 220, "min_child_weight": 4, "subsample": 0.65, "reg_alpha": 0.1, "max_depth": 4, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3055 best=0.3105
+[run 0 step 14] THOUGHT: Thought: subsample=0.75 and colsample_bytree=0.7 are established as strong anchors. Let's test a lower learning rate (0.03) with more estimators (290) to see if finer gradient steps improve PR-AUC.
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "n_estimators": 290, "reg_lambda": 2, "max_depth": 4, "reg_alpha": 0.1, "subsample": 0.75, "min_child_weight": 4, "learning_rate": 0.03})
+  OBS: val_pr_auc=0.3100 best=0.3105
+[run 0 step 15] THOUGHT: Thought: Testing lr=0.05 with n_estimators=180 to see if slightly faster learning works better than 0.04/0.03.
+  ACTION: evaluate_config({"subsample": 0.75, "max_depth": 4, "colsample_bytree": 0.7, "min_child_weight": 4, "n_estimators": 180, "reg_alpha": 0.1, "learning_rate": 0.05, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3128 best=0.3128
+[run 0 step 16] THOUGHT: Thought: lr=0.05, n_estimators=180 achieved a new best PR-AUC of 0.3128. Let's tune n_estimators around 180, testing n_estimators=160.
+  ACTION: evaluate_config({"max_depth": 4, "learning_rate": 0.05, "colsample_bytree": 0.7, "subsample": 0.75, "reg_alpha": 0.1, "reg_lambda": 2, "n_estimators": 160, "min_child_weight": 4})
+  OBS: val_pr_auc=0.3096 best=0.3128
+[run 0 step 17] THOUGHT: Thought: Testing n_estimators=200 with lr=0.05.
+  ACTION: evaluate_config({"n_estimators": 200, "min_child_weight": 4, "max_depth": 4, "colsample_bytree": 0.7, "subsample": 0.75, "reg_alpha": 0.1, "learning_rate": 0.05, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3137 best=0.3137
+[run 0 step 18] THOUGHT: Thought: n_estimators=200 further improved PR-AUC to 0.3137. Testing n_estimators=220 at lr=0.05.
+  ACTION: evaluate_config({"reg_alpha": 0.1, "subsample": 0.75, "n_estimators": 220, "learning_rate": 0.05, "max_depth": 4, "colsample_bytree": 0.7, "reg_lambda": 2, "min_child_weight": 4})
+  OBS: val_pr_auc=0.3158 best=0.3158
+[run 0 step 19] THOUGHT: Thought: n_estimators=220 improved PR-AUC to 0.3158. Testing n_estimators=240 at lr=0.05.
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "n_estimators": 240, "reg_alpha": 0.1, "max_depth": 4, "subsample": 0.75, "min_child_weight": 4, "reg_lambda": 2, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3176 best=0.3176
+[run 0 step 20] THOUGHT: Thought: PR-AUC climbed to 0.31757 at n_estimators=240. Testing n_estimators=260 at lr=0.05.
+  ACTION: evaluate_config({"n_estimators": 260, "subsample": 0.75, "learning_rate": 0.05, "colsample_bytree": 0.7, "min_child_weight": 4, "max_depth": 4, "reg_alpha": 0.1, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3158 best=0.3176
+[run 0 step 21] THOUGHT: Thought: The optimal n_estimators at lr=0.05 is around 240. Now let's tune L2 regularization (reg_lambda), currently at 2.0. Testing reg_lambda=1.0.
+  ACTION: evaluate_config({"n_estimators": 240, "max_depth": 4, "colsample_bytree": 0.7, "reg_lambda": 1, "subsample": 0.75, "reg_alpha": 0.1, "min_child_weight": 4, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3143 best=0.3176
+[run 0 step 22] THOUGHT: Thought: reg_lambda=1.0 underperformed (0.3143 vs 0.3176). Testing higher L2 regularization with reg_lambda=3.0.
+  ACTION: evaluate_config({"reg_lambda": 3, "reg_alpha": 0.1, "subsample": 0.75, "colsample_bytree": 0.7, "n_estimators": 240, "min_child_weight": 4, "learning_rate": 0.05, "max_depth": 4})
+  OBS: val_pr_auc=0.3119 best=0.3176
+[run 0 step 23] THOUGHT: Thought: reg_lambda=2.0 is confirmed optimal. Now exploring L1 regularization (reg_alpha), currently at 0.1. Testing reg_alpha=0.01.
+  ACTION: evaluate_config({"learning_rate": 0.05, "reg_lambda": 2, "subsample": 0.75, "n_estimators": 240, "max_depth": 4, "colsample_bytree": 0.7, "reg_alpha": 0.01, "min_child_weight": 4})
+  OBS: val_pr_auc=0.3113 best=0.3176
+[run 0 step 24] THOUGHT: Thought: reg_alpha=0.01 dropped PR-AUC. Testing reg_alpha=0.2 to see if slightly more sparsity/L1 regularization helps.
+  ACTION: evaluate_config({"min_child_weight": 4, "colsample_bytree": 0.7, "subsample": 0.75, "reg_alpha": 0.2, "max_depth": 4, "learning_rate": 0.05, "reg_lambda": 2, "n_estimators": 240})
+  OBS: val_pr_auc=0.3139 best=0.3176
+[run 0 step 25] THOUGHT: Thought: reg_alpha=0.2 is worse than 0.1, and 0.01 is also worse. Testing reg_alpha=0.05 to narrow in between 0.01 and 0.1.
+  ACTION: evaluate_config({"max_depth": 4, "reg_lambda": 2, "subsample": 0.75, "colsample_bytree": 0.7, "min_child_weight": 4, "learning_rate": 0.05, "n_estimators": 240, "reg_alpha": 0.05})
+  OBS: val_pr_auc=0.3199 best=0.3199
+[run 0 step 26] THOUGHT: Thought: reg_alpha=0.05 reached a new best of 0.31985. Testing reg_alpha=0.04 to see if slightly less L1 regularization is even better.
+  ACTION: evaluate_config({"min_child_weight": 4, "reg_lambda": 2, "max_depth": 4, "learning_rate": 0.05, "subsample": 0.75, "reg_alpha": 0.04, "colsample_bytree": 0.7, "n_estimators": 240})
+  OBS: val_pr_auc=0.3181 best=0.3199
+[run 0 step 27] THOUGHT: Thought: reg_alpha=0.04 dropped to 0.3181. Testing reg_alpha=0.06 to test the other side of 0.05.
+  ACTION: evaluate_config({"min_child_weight": 4, "learning_rate": 0.05, "reg_lambda": 2, "reg_alpha": 0.06, "max_depth": 4, "subsample": 0.75, "n_estimators": 240, "colsample_bytree": 0.7})
+  OBS: val_pr_auc=0.3178 best=0.3199
+[run 0 step 28] THOUGHT: Thought: reg_alpha=0.05 is confirmed best for L1. Now testing n_estimators=230 (with reg_alpha=0.05) to check the fine peak of tree count around 240.
+  ACTION: evaluate_config({"min_child_weight": 4, "reg_alpha": 0.05, "n_estimators": 230, "colsample_bytree": 0.7, "subsample": 0.75, "max_depth": 4, "reg_lambda": 2, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3210 best=0.3210
+[run 0 step 29] THOUGHT: Thought: n_estimators=230 reached a new peak PR-AUC of 0.32097. Testing n_estimators=225 to see if the peak is slightly lower.
+  ACTION: evaluate_config({"min_child_weight": 4, "learning_rate": 0.05, "subsample": 0.75, "n_estimators": 225, "reg_lambda": 2, "max_depth": 4, "colsample_bytree": 0.7, "reg_alpha": 0.05})
+  OBS: val_pr_auc=0.3205 best=0.3210
+[run 0 step 30] THOUGHT: Thought: n_estimators=225 was 0.3205. Testing n_estimators=235 to bracket the exact peak around 230.
+  ACTION: evaluate_config({"min_child_weight": 4, "max_depth": 4, "n_estimators": 235, "learning_rate": 0.05, "subsample": 0.75, "reg_lambda": 2, "colsample_bytree": 0.7, "reg_alpha": 0.05})
+  OBS: val_pr_auc=0.3214 best=0.3214
+[run 0 step 31] THOUGHT: Thought: n_estimators=235 reached our highest validation PR-AUC so far of 0.32137. With 1 evaluation left, testing n_estimators=233 to pinpoint the optimum between 230 and 235.
+  ACTION: evaluate_config({"reg_lambda": 2, "n_estimators": 233, "max_depth": 4, "subsample": 0.75, "learning_rate": 0.05, "min_child_weight": 4, "colsample_bytree": 0.7, "reg_alpha": 0.05})
+  OBS: val_pr_auc=0.3203 best=0.3214
+[run 1 step 1] THOUGHT: 
+  ACTION: evaluate_config({"colsample_bytree": 0.8, "max_depth": 4, "reg_alpha": 0.01, "min_child_weight": 3, "subsample": 0.8, "learning_rate": 0.05, "n_estimators": 200, "reg_lambda": 1})
+  OBS: val_pr_auc=0.3105 best=0.3105
+[run 1 step 2] THOUGHT: 
+  ACTION: evaluate_config({"reg_alpha": 0.1, "learning_rate": 0.03, "max_depth": 3, "n_estimators": 300, "reg_lambda": 2, "colsample_bytree": 0.7, "min_child_weight": 5, "subsample": 0.7})
+  OBS: val_pr_auc=0.2939 best=0.3105
+[run 1 step 3] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 3, "min_child_weight": 4, "n_estimators": 150, "reg_alpha": 0.05, "subsample": 0.85, "max_depth": 6, "learning_rate": 0.04, "colsample_bytree": 0.75})
+  OBS: val_pr_auc=0.3165 best=0.3165
+[run 1 step 4] THOUGHT: 
+  ACTION: evaluate_config({"min_child_weight": 3, "max_depth": 5, "reg_alpha": 0.02, "colsample_bytree": 0.75, "subsample": 0.85, "n_estimators": 180, "reg_lambda": 2, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3061 best=0.3165
+[run 1 step 5] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.85, "colsample_bytree": 0.7, "reg_alpha": 0.1, "max_depth": 7, "min_child_weight": 5, "learning_rate": 0.03, "reg_lambda": 4, "n_estimators": 160})
+  OBS: val_pr_auc=0.3146 best=0.3165
+[run 1 step 6] THOUGHT: 
+  ACTION: evaluate_config({"min_child_weight": 4, "reg_alpha": 0.05, "learning_rate": 0.03, "colsample_bytree": 0.75, "n_estimators": 220, "max_depth": 6, "reg_lambda": 3, "subsample": 0.85})
+  OBS: val_pr_auc=0.3073 best=0.3165
+[run 1 step 7] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 3, "learning_rate": 0.05, "n_estimators": 100, "colsample_bytree": 0.75, "reg_alpha": 0.05, "subsample": 0.85, "max_depth": 6, "min_child_weight": 4})
+  OBS: val_pr_auc=0.3207 best=0.3207
+[run 1 step 8] THOUGHT: 
+  ACTION: evaluate_config({"max_depth": 6, "reg_alpha": 0.05, "colsample_bytree": 0.75, "learning_rate": 0.05, "n_estimators": 80, "min_child_weight": 4, "reg_lambda": 3, "subsample": 0.85})
+  OBS: val_pr_auc=0.3155 best=0.3207
+[run 1 step 9] THOUGHT: 
+  ACTION: evaluate_config({"n_estimators": 120, "learning_rate": 0.05, "reg_lambda": 3, "colsample_bytree": 0.75, "min_child_weight": 4, "subsample": 0.85, "max_depth": 6, "reg_alpha": 0.05})
+  OBS: val_pr_auc=0.3206 best=0.3207
+[run 1 step 10] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.85, "min_child_weight": 6, "max_depth": 6, "reg_lambda": 3, "colsample_bytree": 0.75, "learning_rate": 0.05, "reg_alpha": 0.05, "n_estimators": 100})
+  OBS: val_pr_auc=0.3179 best=0.3207
+[run 1 step 11] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.85, "max_depth": 6, "learning_rate": 0.05, "min_child_weight": 3, "reg_alpha": 0.05, "reg_lambda": 3, "colsample_bytree": 0.75, "n_estimators": 100})
+  OBS: val_pr_auc=0.3163 best=0.3207
+[run 1 step 12] THOUGHT: 
+  ACTION: evaluate_config({"reg_alpha": 0.05, "colsample_bytree": 0.75, "max_depth": 7, "reg_lambda": 3, "learning_rate": 0.05, "n_estimators": 100, "subsample": 0.85, "min_child_weight": 4})
+  OBS: val_pr_auc=0.3150 best=0.3207
+[run 1 step 13] THOUGHT: 
+  ACTION: evaluate_config({"reg_alpha": 0.05, "learning_rate": 0.05, "n_estimators": 100, "reg_lambda": 3, "min_child_weight": 4, "colsample_bytree": 0.75, "subsample": 0.85, "max_depth": 5})
+  OBS: val_pr_auc=0.2995 best=0.3207
+[run 1 step 14] THOUGHT: 
+  ACTION: evaluate_config({"learning_rate": 0.05, "subsample": 0.85, "colsample_bytree": 0.65, "n_estimators": 100, "reg_alpha": 0.05, "max_depth": 6, "min_child_weight": 4, "reg_lambda": 3})
+  OBS: val_pr_auc=0.3171 best=0.3207
+[run 1 step 15] THOUGHT: 
+  ACTION: evaluate_config({"min_child_weight": 4, "reg_lambda": 3, "subsample": 0.85, "colsample_bytree": 0.85, "reg_alpha": 0.05, "max_depth": 6, "learning_rate": 0.05, "n_estimators": 100})
+  OBS: val_pr_auc=0.3099 best=0.3207
+[run 1 step 16] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 3, "reg_alpha": 0.05, "learning_rate": 0.05, "max_depth": 6, "n_estimators": 100, "subsample": 0.85, "min_child_weight": 4, "colsample_bytree": 0.7})
+  OBS: val_pr_auc=0.3171 best=0.3207
+[run 1 step 17] THOUGHT: 
+  ACTION: evaluate_config({"reg_alpha": 0.05, "learning_rate": 0.05, "n_estimators": 100, "min_child_weight": 4, "subsample": 0.75, "max_depth": 6, "colsample_bytree": 0.75, "reg_lambda": 3})
+  OBS: val_pr_auc=0.3198 best=0.3207
+[run 1 step 18] THOUGHT: 
+  ACTION: evaluate_config({"max_depth": 6, "learning_rate": 0.05, "reg_lambda": 3, "reg_alpha": 0.05, "n_estimators": 100, "subsample": 0.95, "colsample_bytree": 0.75, "min_child_weight": 4})
+  OBS: val_pr_auc=0.3147 best=0.3207
+[run 1 step 19] THOUGHT: 
+  ACTION: evaluate_config({"colsample_bytree": 0.75, "min_child_weight": 4, "learning_rate": 0.05, "reg_lambda": 5, "n_estimators": 100, "subsample": 0.85, "max_depth": 6, "reg_alpha": 0.1})
+  OBS: val_pr_auc=0.3178 best=0.3207
+[run 1 step 20] THOUGHT: 
+  ACTION: evaluate_config({"max_depth": 6, "min_child_weight": 4, "subsample": 0.85, "reg_lambda": 1.5, "reg_alpha": 0.02, "n_estimators": 100, "colsample_bytree": 0.75, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3143 best=0.3207
+[run 1 step 21] THOUGHT: 
+  ACTION: evaluate_config({"learning_rate": 0.05, "min_child_weight": 4, "reg_lambda": 3, "subsample": 0.85, "colsample_bytree": 0.75, "reg_alpha": 0.01, "n_estimators": 100, "max_depth": 6})
+  OBS: val_pr_auc=0.3137 best=0.3207
+[run 1 step 22] THOUGHT: 
+  ACTION: evaluate_config({"min_child_weight": 4, "learning_rate": 0.05, "max_depth": 6, "colsample_bytree": 0.75, "subsample": 0.85, "reg_lambda": 3, "n_estimators": 100, "reg_alpha": 0.07})
+  OBS: val_pr_auc=0.3143 best=0.3207
+[run 1 step 23] THOUGHT: 
+  ACTION: evaluate_config({"reg_alpha": 0.05, "max_depth": 6, "colsample_bytree": 0.75, "subsample": 0.85, "n_estimators": 90, "min_child_weight": 4, "reg_lambda": 3, "learning_rate": 0.06})
+  OBS: val_pr_auc=0.3153 best=0.3207
+[run 1 step 24] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 3, "max_depth": 6, "reg_alpha": 0.05, "min_child_weight": 4, "learning_rate": 0.045, "subsample": 0.85, "n_estimators": 110, "colsample_bytree": 0.75})
+  OBS: val_pr_auc=0.3169 best=0.3207
+[run 1 step 25] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.8, "reg_lambda": 3, "n_estimators": 105, "max_depth": 6, "colsample_bytree": 0.75, "learning_rate": 0.05, "reg_alpha": 0.05, "min_child_weight": 4})
+  OBS: val_pr_auc=0.3223 best=0.3223
+[run 1 step 26] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.8, "learning_rate": 0.05, "max_depth": 6, "reg_alpha": 0.05, "reg_lambda": 3, "min_child_weight": 4, "n_estimators": 95, "colsample_bytree": 0.75})
+  OBS: val_pr_auc=0.3204 best=0.3223
+[run 1 step 27] THOUGHT: 
+  ACTION: evaluate_config({"min_child_weight": 4, "colsample_bytree": 0.75, "reg_alpha": 0.05, "learning_rate": 0.05, "max_depth": 6, "n_estimators": 110, "reg_lambda": 3, "subsample": 0.8})
+  OBS: val_pr_auc=0.3200 best=0.3223
+[run 1 step 28] THOUGHT: 
+  ACTION: evaluate_config({"reg_alpha": 0.05, "learning_rate": 0.05, "colsample_bytree": 0.75, "subsample": 0.8, "min_child_weight": 4, "max_depth": 6, "n_estimators": 100, "reg_lambda": 3})
+  OBS: val_pr_auc=0.3215 best=0.3223
+[run 1 step 29] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.8, "learning_rate": 0.05, "reg_lambda": 2.5, "n_estimators": 105, "colsample_bytree": 0.75, "reg_alpha": 0.05, "max_depth": 6, "min_child_weight": 4})
+  OBS: val_pr_auc=0.3162 best=0.3223
+[run 1 step 30] THOUGHT: 
+  ACTION: evaluate_config({"n_estimators": 105, "subsample": 0.8, "max_depth": 6, "min_child_weight": 4, "colsample_bytree": 0.75, "learning_rate": 0.05, "reg_lambda": 3.5, "reg_alpha": 0.05})
+  OBS: val_pr_auc=0.3177 best=0.3223
+[run 2 step 1] THOUGHT: 
+  ACTION: get_history({})
+  OBS: val_pr_auc=nan best=nan
+[run 2 step 2] THOUGHT: 
+  ACTION: evaluate_config({"n_estimators": 150, "learning_rate": 0.05, "subsample": 0.8, "min_child_weight": 3, "reg_lambda": 1, "colsample_bytree": 0.8, "reg_alpha": 0.01, "max_depth": 3})
+  OBS: val_pr_auc=0.2882 best=0.2882
+[run 2 step 3] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.85, "colsample_bytree": 0.7, "n_estimators": 200, "min_child_weight": 5, "reg_alpha": 0.05, "max_depth": 4, "learning_rate": 0.04, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3001 best=0.3001
+[run 2 step 4] THOUGHT: 
+  ACTION: evaluate_config({"min_child_weight": 7, "reg_lambda": 3, "max_depth": 5, "subsample": 0.8, "learning_rate": 0.03, "reg_alpha": 0.1, "colsample_bytree": 0.65, "n_estimators": 250})
+  OBS: val_pr_auc=0.3106 best=0.3106
+[run 2 step 5] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 4, "learning_rate": 0.025, "n_estimators": 300, "subsample": 0.8, "reg_alpha": 0.2, "max_depth": 6, "min_child_weight": 8, "colsample_bytree": 0.6})
+  OBS: val_pr_auc=0.3235 best=0.3235
+[run 2 step 6] THOUGHT: 
+  ACTION: evaluate_config({"learning_rate": 0.02, "max_depth": 7, "reg_lambda": 5, "colsample_bytree": 0.55, "subsample": 0.75, "reg_alpha": 0.3, "n_estimators": 350, "min_child_weight": 9})
+  OBS: val_pr_auc=0.3227 best=0.3235
+[run 2 step 7] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.8, "n_estimators": 300, "reg_lambda": 4, "min_child_weight": 10, "max_depth": 6, "learning_rate": 0.025, "colsample_bytree": 0.6, "reg_alpha": 0.2})
+  OBS: val_pr_auc=0.3211 best=0.3235
+[run 2 step 8] THOUGHT: 
+  ACTION: evaluate_config({"reg_alpha": 0.2, "n_estimators": 300, "colsample_bytree": 0.6, "subsample": 0.8, "learning_rate": 0.025, "max_depth": 6, "reg_lambda": 4, "min_child_weight": 6})
+  OBS: val_pr_auc=0.3185 best=0.3235
+[run 2 step 9] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 4, "max_depth": 6, "min_child_weight": 8, "colsample_bytree": 0.7, "n_estimators": 300, "reg_alpha": 0.2, "learning_rate": 0.025, "subsample": 0.8})
+  OBS: val_pr_auc=0.3180 best=0.3235
+[run 2 step 10] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.8, "learning_rate": 0.025, "max_depth": 6, "colsample_bytree": 0.55, "reg_lambda": 4, "n_estimators": 300, "min_child_weight": 8, "reg_alpha": 0.2})
+  OBS: val_pr_auc=0.3167 best=0.3235
+[run 2 step 11] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.85, "n_estimators": 300, "max_depth": 6, "colsample_bytree": 0.6, "reg_alpha": 0.2, "reg_lambda": 4, "min_child_weight": 8, "learning_rate": 0.025})
+  OBS: val_pr_auc=0.3156 best=0.3235
+[run 2 step 12] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 4, "learning_rate": 0.025, "colsample_bytree": 0.6, "min_child_weight": 8, "subsample": 0.75, "n_estimators": 300, "reg_alpha": 0.2, "max_depth": 6})
+  OBS: val_pr_auc=0.3183 best=0.3235
+[run 2 step 13] THOUGHT: 
+  ACTION: evaluate_config({"reg_alpha": 0.2, "learning_rate": 0.025, "max_depth": 6, "colsample_bytree": 0.6, "n_estimators": 300, "min_child_weight": 8, "subsample": 0.8, "reg_lambda": 6})
+  OBS: val_pr_auc=0.3187 best=0.3235
+[run 2 step 14] THOUGHT: 
+  ACTION: evaluate_config({"max_depth": 6, "n_estimators": 300, "reg_alpha": 0.2, "learning_rate": 0.025, "colsample_bytree": 0.6, "reg_lambda": 3, "min_child_weight": 8, "subsample": 0.8})
+  OBS: val_pr_auc=0.3229 best=0.3235
+[run 2 step 15] THOUGHT: 
+  ACTION: evaluate_config({"learning_rate": 0.025, "n_estimators": 300, "reg_lambda": 4, "max_depth": 6, "colsample_bytree": 0.6, "min_child_weight": 8, "subsample": 0.8, "reg_alpha": 0.3})
+  OBS: val_pr_auc=0.3222 best=0.3235
+[run 2 step 16] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.8, "reg_lambda": 4, "n_estimators": 400, "reg_alpha": 0.2, "max_depth": 6, "colsample_bytree": 0.6, "min_child_weight": 8, "learning_rate": 0.02})
+  OBS: val_pr_auc=0.3208 best=0.3235
+[run 2 step 17] THOUGHT: 
+  ACTION: evaluate_config({"subsample": 0.8, "reg_alpha": 0.2, "max_depth": 6, "min_child_weight": 8, "colsample_bytree": 0.6, "learning_rate": 0.03, "reg_lambda": 4, "n_estimators": 250})
+  OBS: val_pr_auc=0.3180 best=0.3235
+[run 2 step 18] THOUGHT: 
+  ACTION: evaluate_config({"min_child_weight": 8, "learning_rate": 0.025, "reg_alpha": 0.2, "n_estimators": 300, "reg_lambda": 4, "colsample_bytree": 0.6, "max_depth": 5, "subsample": 0.8})
+  OBS: val_pr_auc=0.3086 best=0.3235
+[run 2 step 19] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 4, "colsample_bytree": 0.6, "min_child_weight": 8, "reg_alpha": 0.2, "max_depth": 7, "learning_rate": 0.025, "n_estimators": 300, "subsample": 0.8})
+  OBS: val_pr_auc=0.3307 best=0.3307
+[run 2 step 20] THOUGHT: 
+  ACTION: evaluate_config({"reg_alpha": 0.2, "reg_lambda": 4, "colsample_bytree": 0.6, "min_child_weight": 8, "n_estimators": 300, "learning_rate": 0.025, "max_depth": 8, "subsample": 0.8})
+  OBS: val_pr_auc=0.3336 best=0.3336
+[run 2 step 21] THOUGHT: 
+  ACTION: evaluate_config({"n_estimators": 300, "max_depth": 8, "colsample_bytree": 0.6, "reg_alpha": 0.2, "learning_rate": 0.025, "min_child_weight": 9, "reg_lambda": 4, "subsample": 0.8})
+  OBS: val_pr_auc=0.3247 best=0.3336
+[run 2 step 22] THOUGHT: 
+  ACTION: evaluate_config({"n_estimators": 300, "max_depth": 8, "reg_lambda": 4, "min_child_weight": 7, "reg_alpha": 0.2, "colsample_bytree": 0.6, "subsample": 0.8, "learning_rate": 0.025})
+  OBS: val_pr_auc=0.3322 best=0.3336
+[run 2 step 23] THOUGHT: 
+  ACTION: evaluate_config({"n_estimators": 300, "reg_alpha": 0.2, "subsample": 0.8, "learning_rate": 0.025, "max_depth": 8, "reg_lambda": 4, "colsample_bytree": 0.65, "min_child_weight": 8})
+  OBS: val_pr_auc=0.3228 best=0.3336
+[run 2 step 24] THOUGHT: 
+  ACTION: evaluate_config({"min_child_weight": 8, "n_estimators": 300, "subsample": 0.8, "reg_lambda": 4, "reg_alpha": 0.2, "colsample_bytree": 0.55, "max_depth": 8, "learning_rate": 0.025})
+  OBS: val_pr_auc=0.3263 best=0.3336
+[run 2 step 25] THOUGHT: 
+  ACTION: evaluate_config({"colsample_bytree": 0.6, "subsample": 0.8, "max_depth": 8, "reg_alpha": 0.2, "learning_rate": 0.025, "min_child_weight": 8, "reg_lambda": 3, "n_estimators": 300})
+  OBS: val_pr_auc=0.3298 best=0.3336
+[run 2 step 26] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 5, "learning_rate": 0.025, "colsample_bytree": 0.6, "subsample": 0.8, "max_depth": 8, "n_estimators": 300, "reg_alpha": 0.2, "min_child_weight": 8})
+  OBS: val_pr_auc=0.3305 best=0.3336
+[run 2 step 27] THOUGHT: 
+  ACTION: evaluate_config({"max_depth": 8, "reg_lambda": 4, "learning_rate": 0.025, "subsample": 0.8, "min_child_weight": 8, "n_estimators": 300, "reg_alpha": 0.15, "colsample_bytree": 0.6})
+  OBS: val_pr_auc=0.3316 best=0.3336
+[run 2 step 28] THOUGHT: 
+  ACTION: evaluate_config({"reg_lambda": 4, "reg_alpha": 0.25, "max_depth": 8, "subsample": 0.8, "n_estimators": 300, "learning_rate": 0.025, "colsample_bytree": 0.6, "min_child_weight": 8})
+  OBS: val_pr_auc=0.3328 best=0.3336
+[run 2 step 29] THOUGHT: 
+  ACTION: evaluate_config({"n_estimators": 330, "learning_rate": 0.025, "reg_lambda": 4, "min_child_weight": 8, "subsample": 0.8, "colsample_bytree": 0.6, "reg_alpha": 0.2, "max_depth": 8})
+  OBS: val_pr_auc=0.3352 best=0.3352
+[run 2 step 30] THOUGHT: 
+  ACTION: evaluate_config({"max_depth": 8, "min_child_weight": 8, "reg_alpha": 0.2, "colsample_bytree": 0.6, "n_estimators": 360, "subsample": 0.8, "learning_rate": 0.025, "reg_lambda": 4})
+  OBS: val_pr_auc=0.3373 best=0.3373
+[run 2 step 31] THOUGHT: 
+  ACTION: evaluate_config({"min_child_weight": 8, "learning_rate": 0.025, "reg_alpha": 0.2, "max_depth": 8, "n_estimators": 390, "colsample_bytree": 0.6, "subsample": 0.8, "reg_lambda": 4})
+  OBS: val_pr_auc=0.3394 best=0.3394

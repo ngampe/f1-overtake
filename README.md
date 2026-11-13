@@ -18,3 +18,9 @@ using only telemetry available at or before T0 using FastF1 data
 
 ## Log of detection-threshold changes
 Record each change to `DetectCfg` with the attempt count and success rate it produced.
+
+## ReAct tuning agent (Ckpt 3)
+    export GEMINI_API_KEY=...   # never commit your key
+    python agent.py compare     # agent vs grid vs Optuna, seeds 0-4
+    python agent.py report      # table + figure
+    python agent.py demo --seed 0 --n 10

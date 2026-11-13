@@ -1,0 +1,8 @@
+\begin{tabular}{lcccc}\toprule
+Method & PR-AUC & ROC-AUC & F1 & ECE \\\midrule
+Gap heuristic & 0.348 $\pm$ 0.068 & 0.831 & 0.360 & -- \\
+Logistic regression & 0.425 $\pm$ 0.125 & 0.859 & 0.442 & 0.018 \\
+XGBoost (grid) & 0.433 $\pm$ 0.128 & 0.863 & 0.443 & 0.024 \\
+XGBoost (Optuna) & 0.446 $\pm$ 0.114 & 0.867 & 0.449 & 0.019 \\
+ReAct agent & 0.443 $\pm$ 0.112 & 0.866 & 0.451 & 0.020 \\
+\bottomrule\end{tabular}
