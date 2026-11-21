@@ -1,0 +1,279 @@
+[run 0 step 1] THOUGHT: 
+  ACTION: get_history({})
+  OBS: val_pr_auc=nan best=nan
+[run 0 step 2] THOUGHT: Initial baseline probe with moderate depth, learning rate, and regularization to establish benchmark PR-AUC.
+  ACTION: evaluate_config({"max_depth": 4, "min_child_weight": 3, "reg_alpha": 0.01, "subsample": 0.8, "learning_rate": 0.05, "reg_lambda": 1, "rationale": "Initial baseline probe with moderate depth, learning rate, and regularization to establish benchmark PR-AUC.", "colsample_bytree": 0.8, "n_estimators": 150})
+  OBS: val_pr_auc=0.3066 best=0.3066
+[run 0 step 3] THOUGHT: Trial 1 achieved 0.3066; testing a shallower tree with stronger min_child_weight and regularization to curb overfitting on the imbalanced class.
+  ACTION: evaluate_config({"learning_rate": 0.03, "rationale": "Trial 1 achieved 0.3066; testing a shallower tree with stronger min_child_weight and regularization to curb overfitting on the imbalanced class.", "n_estimators": 250, "min_child_weight": 6, "reg_lambda": 3, "colsample_bytree": 0.7, "max_depth": 3, "subsample": 0.7, "reg_alpha": 0.1})
+  OBS: val_pr_auc=0.2926 best=0.3066
+[run 0 step 4] THOUGHT: Trial 2 with max_depth=3 underperformed (0.2926 vs 0.3066), so testing deeper trees (depth=5) with lower min_child_weight to capture richer feature interactions.
+  ACTION: evaluate_config({"max_depth": 5, "reg_lambda": 0.5, "reg_alpha": 0.01, "rationale": "Trial 2 with max_depth=3 underperformed (0.2926 vs 0.3066), so testing deeper trees (depth=5) with lower min_child_weight to capture richer feature interactions.", "n_estimators": 120, "learning_rate": 0.08, "subsample": 0.85, "colsample_bytree": 0.75, "min_child_weight": 2})
+  OBS: val_pr_auc=0.3055 best=0.3066
+[run 0 step 5] THOUGHT: Trials 1 and 3 show max_depth 4-5 is effective; testing a slower learning rate (0.02) with 300 estimators at depth 4 to refine gradient descent.
+  ACTION: evaluate_config({"reg_alpha": 0.05, "rationale": "Trials 1 and 3 show max_depth 4-5 is effective; testing a slower learning rate (0.02) with 300 estimators at depth 4 to refine gradient descent.", "subsample": 0.8, "colsample_bytree": 0.8, "reg_lambda": 1, "learning_rate": 0.02, "min_child_weight": 3, "max_depth": 4, "n_estimators": 300})
+  OBS: val_pr_auc=0.2992 best=0.3066
+[run 0 step 6] THOUGHT: Trial 4 suggests 300 trees might overfit or drift; evaluating max_depth=6 with fewer trees (100) and moderate regularization.
+  ACTION: evaluate_config({"min_child_weight": 4, "reg_alpha": 0.1, "n_estimators": 100, "rationale": "Trial 4 suggests 300 trees might overfit or drift; evaluating max_depth=6 with fewer trees (100) and moderate regularization.", "subsample": 0.8, "max_depth": 6, "reg_lambda": 2, "colsample_bytree": 0.7, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3210 best=0.3210
+[run 0 step 7] THOUGHT: Trial 5 saw a big jump to 0.3210 with max_depth=6; testing max_depth=7 with slightly lower lr and higher min_child_weight to see if deeper trees continue improving.
+  ACTION: evaluate_config({"max_depth": 7, "reg_alpha": 0.1, "rationale": "Trial 5 saw a big jump to 0.3210 with max_depth=6; testing max_depth=7 with slightly lower lr and higher min_child_weight to see if deeper trees continue improving.", "reg_lambda": 2, "n_estimators": 90, "subsample": 0.8, "min_child_weight": 5, "learning_rate": 0.04, "colsample_bytree": 0.7})
+  OBS: val_pr_auc=0.3190 best=0.3210
+[run 0 step 8] THOUGHT: Trial 5 reached 0.3210 with 100 trees at lr=0.05; testing a slightly lower lr (0.04) with 130 trees at depth 6 to see if finer shrinkage improves performance.
+  ACTION: evaluate_config({"rationale": "Trial 5 reached 0.3210 with 100 trees at lr=0.05; testing a slightly lower lr (0.04) with 130 trees at depth 6 to see if finer shrinkage improves performance.", "subsample": 0.8, "max_depth": 6, "colsample_bytree": 0.7, "learning_rate": 0.04, "min_child_weight": 4, "n_estimators": 130, "reg_alpha": 0.1, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3202 best=0.3210
+[run 0 step 9] THOUGHT: Holding best configuration from Trial 5 steady while testing higher min_child_weight=5 to prevent leaf-level noise on rare overtakes.
+  ACTION: evaluate_config({"learning_rate": 0.05, "colsample_bytree": 0.7, "min_child_weight": 5, "reg_alpha": 0.1, "reg_lambda": 2, "subsample": 0.8, "n_estimators": 100, "max_depth": 6, "rationale": "Holding best configuration from Trial 5 steady while testing higher min_child_weight=5 to prevent leaf-level noise on rare overtakes."})
+  OBS: val_pr_auc=0.3198 best=0.3210
+[run 0 step 10] THOUGHT: Testing lower min_child_weight=3 relative to Trial 5 (0.3210) to see if more granular splits in positive-class regions help.
+  ACTION: evaluate_config({"n_estimators": 100, "colsample_bytree": 0.7, "max_depth": 6, "reg_alpha": 0.1, "reg_lambda": 2, "rationale": "Testing lower min_child_weight=3 relative to Trial 5 (0.3210) to see if more granular splits in positive-class regions help.", "learning_rate": 0.05, "subsample": 0.8, "min_child_weight": 3})
+  OBS: val_pr_auc=0.3220 best=0.3220
+[run 0 step 11] THOUGHT: Trial 9 improved to 0.3220 with min_child_weight=3; testing min_child_weight=2 to see if even finer splits yield further PR-AUC gains.
+  ACTION: evaluate_config({"learning_rate": 0.05, "subsample": 0.8, "min_child_weight": 2, "rationale": "Trial 9 improved to 0.3220 with min_child_weight=3; testing min_child_weight=2 to see if even finer splits yield further PR-AUC gains.", "reg_lambda": 2, "n_estimators": 100, "colsample_bytree": 0.7, "max_depth": 6, "reg_alpha": 0.1})
+  OBS: val_pr_auc=0.3259 best=0.3259
+[run 0 step 12] THOUGHT: Trial 10 reached 0.3259 with min_child_weight=2; testing the boundary min_child_weight=1 to test if minimal leaf constraint maximizes PR-AUC.
+  ACTION: evaluate_config({"n_estimators": 100, "min_child_weight": 1, "subsample": 0.8, "max_depth": 6, "colsample_bytree": 0.7, "reg_lambda": 2, "learning_rate": 0.05, "reg_alpha": 0.1, "rationale": "Trial 10 reached 0.3259 with min_child_weight=2; testing the boundary min_child_weight=1 to test if minimal leaf constraint maximizes PR-AUC."})
+  OBS: val_pr_auc=0.3281 best=0.3281
+[run 0 step 13] THOUGHT: min_child_weight=1 achieved best score 0.3281 at depth 6; testing if max_depth=7 with min_child_weight=1 uncovers higher-order interactions.
+  ACTION: evaluate_config({"subsample": 0.8, "rationale": "min_child_weight=1 achieved best score 0.3281 at depth 6; testing if max_depth=7 with min_child_weight=1 uncovers higher-order interactions.", "learning_rate": 0.05, "n_estimators": 100, "max_depth": 7, "min_child_weight": 1, "colsample_bytree": 0.7, "reg_alpha": 0.1, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3188 best=0.3281
+[run 0 step 14] THOUGHT: Depth 7 dropped in Trial 12 (0.3188 vs 0.3281); checking whether depth 5 with min_child_weight=1 avoids overfitting while maintaining capacity.
+  ACTION: evaluate_config({"max_depth": 5, "rationale": "Depth 7 dropped in Trial 12 (0.3188 vs 0.3281); checking whether depth 5 with min_child_weight=1 avoids overfitting while maintaining capacity.", "min_child_weight": 1, "reg_lambda": 2, "reg_alpha": 0.1, "subsample": 0.8, "learning_rate": 0.05, "n_estimators": 100, "colsample_bytree": 0.7})
+  OBS: val_pr_auc=0.3139 best=0.3281
+[run 0 step 15] THOUGHT: Confirming depth 6 and min_child_weight 1 as the optimal structure; testing a lower learning rate 0.03 with 160 estimators to see if smoother boosting boosts PR-AUC.
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "reg_alpha": 0.1, "n_estimators": 160, "learning_rate": 0.03, "subsample": 0.8, "max_depth": 6, "min_child_weight": 1, "rationale": "Confirming depth 6 and min_child_weight 1 as the optimal structure; testing a lower learning rate 0.03 with 160 estimators to see if smoother boosting boosts PR-AUC.", "reg_lambda": 2})
+  OBS: val_pr_auc=0.3177 best=0.3281
+[run 0 step 16] THOUGHT: Trial 14 indicates more trees degraded performance; testing fewer trees (80 at lr=0.05) to check if peak performance occurs earlier.
+  ACTION: evaluate_config({"rationale": "Trial 14 indicates more trees degraded performance; testing fewer trees (80 at lr=0.05) to check if peak performance occurs earlier.", "max_depth": 6, "reg_alpha": 0.1, "n_estimators": 80, "learning_rate": 0.05, "colsample_bytree": 0.7, "min_child_weight": 1, "subsample": 0.8, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3256 best=0.3281
+[run 0 step 17] THOUGHT: Trial 15 (80 trees) was 0.3256 vs Trial 11 (100 trees) at 0.3281; testing slightly more trees (110) to pinpoint the optimal iteration.
+  ACTION: evaluate_config({"n_estimators": 110, "min_child_weight": 1, "rationale": "Trial 15 (80 trees) was 0.3256 vs Trial 11 (100 trees) at 0.3281; testing slightly more trees (110) to pinpoint the optimal iteration.", "reg_lambda": 2, "max_depth": 6, "colsample_bytree": 0.7, "subsample": 0.8, "reg_alpha": 0.1, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3284 best=0.3284
+[run 0 step 18] THOUGHT: Trial 16 slightly improved score at 110 trees (0.3284 vs 0.3281); testing 125 trees to map the peak of the curve.
+  ACTION: evaluate_config({"subsample": 0.8, "learning_rate": 0.05, "min_child_weight": 1, "reg_alpha": 0.1, "colsample_bytree": 0.7, "reg_lambda": 2, "rationale": "Trial 16 slightly improved score at 110 trees (0.3284 vs 0.3281); testing 125 trees to map the peak of the curve.", "max_depth": 6, "n_estimators": 125})
+  OBS: val_pr_auc=0.3282 best=0.3284
+[run 0 step 19] THOUGHT: Testing if increasing colsample_bytree to 0.8 with our best model (Trial 16, 0.3284) provides better feature coverage per split.
+  ACTION: evaluate_config({"colsample_bytree": 0.8, "rationale": "Testing if increasing colsample_bytree to 0.8 with our best model (Trial 16, 0.3284) provides better feature coverage per split.", "n_estimators": 110, "reg_alpha": 0.1, "reg_lambda": 2, "max_depth": 6, "learning_rate": 0.05, "subsample": 0.8, "min_child_weight": 1})
+  OBS: val_pr_auc=0.3189 best=0.3284
+[run 0 step 20] THOUGHT: colsample_bytree=0.8 dropped to 0.3189; testing 0.6 to see if more feature subsampling improves generalization.
+  ACTION: evaluate_config({"reg_alpha": 0.1, "colsample_bytree": 0.6, "min_child_weight": 1, "subsample": 0.8, "rationale": "colsample_bytree=0.8 dropped to 0.3189; testing 0.6 to see if more feature subsampling improves generalization.", "reg_lambda": 2, "max_depth": 6, "n_estimators": 110, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3203 best=0.3284
+[run 0 step 21] THOUGHT: Testing slightly higher subsample (0.85 vs 0.8) on top of Trial 16's winning parameters to see if more row exposure helps.
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "n_estimators": 110, "min_child_weight": 1, "reg_alpha": 0.1, "reg_lambda": 2, "rationale": "Testing slightly higher subsample (0.85 vs 0.8) on top of Trial 16's winning parameters to see if more row exposure helps.", "max_depth": 6, "learning_rate": 0.05, "subsample": 0.85})
+  OBS: val_pr_auc=0.3206 best=0.3284
+[run 0 step 22] THOUGHT: Subsample 0.85 dropped score, so testing lower subsample 0.75 to see if extra stochastic variance reduction benefits depth 6.
+  ACTION: evaluate_config({"subsample": 0.75, "colsample_bytree": 0.7, "min_child_weight": 1, "max_depth": 6, "n_estimators": 110, "reg_alpha": 0.1, "rationale": "Subsample 0.85 dropped score, so testing lower subsample 0.75 to see if extra stochastic variance reduction benefits depth 6.", "reg_lambda": 2, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3373 best=0.3373
+[run 0 step 23] THOUGHT: Trial 21 jumped to 0.3373 with subsample=0.75; testing subsample=0.70 to check if further subsampling increases generalization.
+  ACTION: evaluate_config({"min_child_weight": 1, "rationale": "Trial 21 jumped to 0.3373 with subsample=0.75; testing subsample=0.70 to check if further subsampling increases generalization.", "max_depth": 6, "n_estimators": 110, "reg_alpha": 0.1, "learning_rate": 0.05, "reg_lambda": 2, "colsample_bytree": 0.7, "subsample": 0.7})
+  OBS: val_pr_auc=0.3224 best=0.3373
+[run 0 step 24] THOUGHT: Subsample 0.75 is optimal (0.3373); testing higher reg_lambda=4.0 to control leaf weights with min_child_weight=1.
+  ACTION: evaluate_config({"reg_lambda": 4, "max_depth": 6, "learning_rate": 0.05, "reg_alpha": 0.1, "rationale": "Subsample 0.75 is optimal (0.3373); testing higher reg_lambda=4.0 to control leaf weights with min_child_weight=1.", "min_child_weight": 1, "subsample": 0.75, "n_estimators": 110, "colsample_bytree": 0.7})
+  OBS: val_pr_auc=0.3143 best=0.3373
+[run 0 step 25] THOUGHT: Trial 23 showed higher lambda hurt performance; testing lower reg_lambda=1.0 to allow bolder leaf predictions.
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "min_child_weight": 1, "rationale": "Trial 23 showed higher lambda hurt performance; testing lower reg_lambda=1.0 to allow bolder leaf predictions.", "max_depth": 6, "reg_lambda": 1, "reg_alpha": 0.1, "subsample": 0.75, "n_estimators": 110, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3182 best=0.3373
+[run 0 step 26] THOUGHT: reg_lambda=2 is optimal; now testing lower L1 penalty reg_alpha=0.01 to allow more feature paths.
+  ACTION: evaluate_config({"learning_rate": 0.05, "reg_lambda": 2, "n_estimators": 110, "colsample_bytree": 0.7, "rationale": "reg_lambda=2 is optimal; now testing lower L1 penalty reg_alpha=0.01 to allow more feature paths.", "max_depth": 6, "min_child_weight": 1, "reg_alpha": 0.01, "subsample": 0.75})
+  OBS: val_pr_auc=0.3280 best=0.3373
+[run 0 step 27] THOUGHT: reg_alpha=0.1 was superior to 0.01; testing slightly stronger sparsity via reg_alpha=0.3.
+  ACTION: evaluate_config({"reg_lambda": 2, "reg_alpha": 0.3, "colsample_bytree": 0.7, "n_estimators": 110, "min_child_weight": 1, "subsample": 0.75, "rationale": "reg_alpha=0.1 was superior to 0.01; testing slightly stronger sparsity via reg_alpha=0.3.", "max_depth": 6, "learning_rate": 0.05})
+  OBS: val_pr_auc=0.3318 best=0.3373
+[run 0 step 28] THOUGHT: With subsample=0.75 established as superior, testing colsample_bytree=0.65 to see if intermediate feature fraction improves on 0.70.
+  ACTION: evaluate_config({"subsample": 0.75, "reg_alpha": 0.1, "colsample_bytree": 0.65, "max_depth": 6, "reg_lambda": 2, "rationale": "With subsample=0.75 established as superior, testing colsample_bytree=0.65 to see if intermediate feature fraction improves on 0.70.", "n_estimators": 110, "learning_rate": 0.05, "min_child_weight": 1})
+  OBS: val_pr_auc=0.3373 best=0.3373
+[run 0 step 29] THOUGHT: Testing colsample_bytree=0.75 to see if an additional feature split improves diversity without over-correlating trees.
+  ACTION: evaluate_config({"min_child_weight": 1, "colsample_bytree": 0.75, "subsample": 0.75, "n_estimators": 110, "max_depth": 6, "reg_lambda": 2, "learning_rate": 0.05, "reg_alpha": 0.1, "rationale": "Testing colsample_bytree=0.75 to see if an additional feature split improves diversity without over-correlating trees."})
+  OBS: val_pr_auc=0.3183 best=0.3373
+[run 0 step 30] THOUGHT: Testing if n_estimators=100 with subsample=0.75 matches or exceeds 110 trees by halting slightly earlier before any subtle overfitting.
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "subsample": 0.75, "max_depth": 6, "learning_rate": 0.05, "rationale": "Testing if n_estimators=100 with subsample=0.75 matches or exceeds 110 trees by halting slightly earlier before any subtle overfitting.", "min_child_weight": 1, "reg_alpha": 0.1, "n_estimators": 100, "reg_lambda": 2})
+  OBS: val_pr_auc=0.3336 best=0.3373
+[run 0 step 31] THOUGHT: With 100 trees at 0.3336 and 110 trees at 0.3373, testing 115 trees to see if the peak performance extends slightly past 110.
+  ACTION: evaluate_config({"min_child_weight": 1, "n_estimators": 115, "max_depth": 6, "colsample_bytree": 0.7, "reg_lambda": 2, "rationale": "With 100 trees at 0.3336 and 110 trees at 0.3373, testing 115 trees to see if the peak performance extends slightly past 110.", "reg_alpha": 0.1, "learning_rate": 0.05, "subsample": 0.75})
+  OBS: val_pr_auc=0.3367 best=0.3373
+[run 1 step 1] THOUGHT: 
+  ACTION: get_history({})
+  OBS: val_pr_auc=nan best=nan
+[run 1 step 2] THOUGHT: Initial balanced baseline exploring moderate depth and shrinkage for imbalanced tabular data.
+  ACTION: evaluate_config({"reg_alpha": 0.01, "learning_rate": 0.05, "n_estimators": 150, "reg_lambda": 1, "min_child_weight": 3, "rationale": "Initial balanced baseline exploring moderate depth and shrinkage for imbalanced tabular data.", "colsample_bytree": 0.8, "max_depth": 4, "subsample": 0.8})
+  OBS: val_pr_auc=0.3066 best=0.3066
+[run 1 step 3] THOUGHT: Trial 1 achieved 0.3066 with depth 4; testing shallower depth 3 with higher min_child_weight to reduce overfitting on rare positives.
+  ACTION: evaluate_config({"reg_alpha": 0.1, "max_depth": 3, "learning_rate": 0.03, "colsample_bytree": 0.7, "subsample": 0.85, "n_estimators": 250, "reg_lambda": 2, "min_child_weight": 5, "rationale": "Trial 1 achieved 0.3066 with depth 4; testing shallower depth 3 with higher min_child_weight to reduce overfitting on rare positives."})
+  OBS: val_pr_auc=0.2905 best=0.3066
+[run 1 step 4] THOUGHT: Trial 2 underperformed at depth 3 (0.2905 vs 0.3066 in Trial 1), so testing depth 5 with moderate regularization to explore interaction capacity.
+  ACTION: evaluate_config({"rationale": "Trial 2 underperformed at depth 3 (0.2905 vs 0.3066 in Trial 1), so testing depth 5 with moderate regularization to explore interaction capacity.", "min_child_weight": 2, "subsample": 0.75, "max_depth": 5, "reg_lambda": 3, "learning_rate": 0.04, "reg_alpha": 0.05, "colsample_bytree": 0.75, "n_estimators": 180})
+  OBS: val_pr_auc=0.3137 best=0.3137
+[run 1 step 5] THOUGHT: Trial 3 improved to 0.3137 with depth 5, so testing depth 6 with slightly higher regularization and feature subsampling to test higher interaction depth.
+  ACTION: evaluate_config({"min_child_weight": 3, "rationale": "Trial 3 improved to 0.3137 with depth 5, so testing depth 6 with slightly higher regularization and feature subsampling to test higher interaction depth.", "reg_alpha": 0.1, "n_estimators": 150, "max_depth": 6, "learning_rate": 0.04, "reg_lambda": 4, "subsample": 0.7, "colsample_bytree": 0.7})
+  OBS: val_pr_auc=0.3250 best=0.3250
+[run 1 step 6] THOUGHT: Trials 1-4 show steady improvement with increasing depth (3:0.2905 -> 6:0.3250); testing depth 7 with tight regularization to check if deeper trees continue to improve PR-AUC.
+  ACTION: evaluate_config({"colsample_bytree": 0.65, "rationale": "Trials 1-4 show steady improvement with increasing depth (3:0.2905 -> 6:0.3250); testing depth 7 with tight regularization to check if deeper trees continue to improve PR-AUC.", "n_estimators": 160, "reg_alpha": 0.2, "reg_lambda": 5, "max_depth": 7, "min_child_weight": 3, "subsample": 0.7, "learning_rate": 0.035})
+  OBS: val_pr_auc=0.3278 best=0.3278
+[run 1 step 7] THOUGHT: Depth 7 improved to 0.3278 in Trial 5; testing max_depth 8 with higher min_child_weight and shrinkage to probe the upper boundary of tree depth.
+  ACTION: evaluate_config({"rationale": "Depth 7 improved to 0.3278 in Trial 5; testing max_depth 8 with higher min_child_weight and shrinkage to probe the upper boundary of tree depth.", "colsample_bytree": 0.6, "n_estimators": 170, "subsample": 0.65, "min_child_weight": 4, "reg_lambda": 6, "reg_alpha": 0.3, "learning_rate": 0.03, "max_depth": 8})
+  OBS: val_pr_auc=0.3223 best=0.3278
+[run 1 step 8] THOUGHT: Trial 5 peaked at 0.3278 with depth 7 and min_child_weight 3; testing min_child_weight 2 to see if finer leaf partitioning benefits minority class capture.
+  ACTION: evaluate_config({"subsample": 0.7, "max_depth": 7, "colsample_bytree": 0.65, "learning_rate": 0.035, "n_estimators": 160, "reg_lambda": 5, "reg_alpha": 0.2, "rationale": "Trial 5 peaked at 0.3278 with depth 7 and min_child_weight 3; testing min_child_weight 2 to see if finer leaf partitioning benefits minority class capture.", "min_child_weight": 2})
+  OBS: val_pr_auc=0.3250 best=0.3278
+[run 1 step 9] THOUGHT: Min_child_weight 2 was lower than 3 (0.3250 vs 0.3278); testing min_child_weight 4 to check if slightly coarser leaves prevent overfitting at depth 7.
+  ACTION: evaluate_config({"rationale": "Min_child_weight 2 was lower than 3 (0.3250 vs 0.3278); testing min_child_weight 4 to check if slightly coarser leaves prevent overfitting at depth 7.", "learning_rate": 0.035, "n_estimators": 160, "min_child_weight": 4, "reg_lambda": 5, "reg_alpha": 0.2, "subsample": 0.7, "colsample_bytree": 0.65, "max_depth": 7})
+  OBS: val_pr_auc=0.3259 best=0.3278
+[run 1 step 10] THOUGHT: With min_child_weight=3 confirmed best at depth 7, testing higher feature and sample fractions (0.75/0.75) vs Trial 5 (0.65/0.70).
+  ACTION: evaluate_config({"reg_lambda": 5, "learning_rate": 0.035, "subsample": 0.75, "n_estimators": 160, "reg_alpha": 0.2, "max_depth": 7, "rationale": "With min_child_weight=3 confirmed best at depth 7, testing higher feature and sample fractions (0.75/0.75) vs Trial 5 (0.65/0.70).", "min_child_weight": 3, "colsample_bytree": 0.75})
+  OBS: val_pr_auc=0.3277 best=0.3278
+[run 1 step 11] THOUGHT: Trial 5 is leading with 0.3278; testing slower learning rate (0.02 vs 0.035) with more trees (280) for finer gradient descent steps.
+  ACTION: evaluate_config({"min_child_weight": 3, "colsample_bytree": 0.65, "subsample": 0.7, "n_estimators": 280, "reg_alpha": 0.2, "rationale": "Trial 5 is leading with 0.3278; testing slower learning rate (0.02 vs 0.035) with more trees (280) for finer gradient descent steps.", "reg_lambda": 5, "learning_rate": 0.02, "max_depth": 7})
+  OBS: val_pr_auc=0.3275 best=0.3278
+[run 1 step 12] THOUGHT: Testing if Trial 5 (n_estimators=160, 0.3278) benefits from additional boosting rounds (200) at learning rate 0.035.
+  ACTION: evaluate_config({"max_depth": 7, "colsample_bytree": 0.65, "learning_rate": 0.035, "reg_lambda": 5, "n_estimators": 200, "reg_alpha": 0.2, "rationale": "Testing if Trial 5 (n_estimators=160, 0.3278) benefits from additional boosting rounds (200) at learning rate 0.035.", "min_child_weight": 3, "subsample": 0.7})
+  OBS: val_pr_auc=0.3311 best=0.3311
+[run 1 step 13] THOUGHT: Trial 11 improved to 0.3311 with 200 estimators; testing 240 estimators to see if additional trees further boost PR-AUC.
+  ACTION: evaluate_config({"n_estimators": 240, "colsample_bytree": 0.65, "rationale": "Trial 11 improved to 0.3311 with 200 estimators; testing 240 estimators to see if additional trees further boost PR-AUC.", "reg_lambda": 5, "reg_alpha": 0.2, "learning_rate": 0.035, "min_child_weight": 3, "max_depth": 7, "subsample": 0.7})
+  OBS: val_pr_auc=0.3342 best=0.3342
+[run 1 step 14] THOUGHT: Increasing n_estimators steadily improved score (160->0.3278, 200->0.3311, 240->0.3342); pushing to 280 to locate the optimum.
+  ACTION: evaluate_config({"colsample_bytree": 0.65, "reg_alpha": 0.2, "reg_lambda": 5, "max_depth": 7, "subsample": 0.7, "rationale": "Increasing n_estimators steadily improved score (160->0.3278, 200->0.3311, 240->0.3342); pushing to 280 to locate the optimum.", "n_estimators": 280, "learning_rate": 0.035, "min_child_weight": 3})
+  OBS: val_pr_auc=0.3348 best=0.3348
+[run 1 step 15] THOUGHT: Trial 13 reached 0.3348 at 280 estimators; testing 320 to check if gains continue or plateau.
+  ACTION: evaluate_config({"rationale": "Trial 13 reached 0.3348 at 280 estimators; testing 320 to check if gains continue or plateau.", "n_estimators": 320, "reg_lambda": 5, "reg_alpha": 0.2, "min_child_weight": 3, "colsample_bytree": 0.65, "max_depth": 7, "subsample": 0.7, "learning_rate": 0.035})
+  OBS: val_pr_auc=0.3413 best=0.3413
+[run 1 step 16] THOUGHT: Trial 14 saw a strong jump to 0.3413 at 320 estimators; testing 360 estimators to find peak boosting rounds.
+  ACTION: evaluate_config({"reg_alpha": 0.2, "colsample_bytree": 0.65, "subsample": 0.7, "reg_lambda": 5, "n_estimators": 360, "learning_rate": 0.035, "min_child_weight": 3, "rationale": "Trial 14 saw a strong jump to 0.3413 at 320 estimators; testing 360 estimators to find peak boosting rounds.", "max_depth": 7})
+  OBS: val_pr_auc=0.3389 best=0.3413
+[run 1 step 17] THOUGHT: With 320 at 0.3413 and 360 at 0.3389, testing n_estimators 310 to refine the optimum around 320.
+  ACTION: evaluate_config({"min_child_weight": 3, "learning_rate": 0.035, "max_depth": 7, "reg_alpha": 0.2, "colsample_bytree": 0.65, "reg_lambda": 5, "rationale": "With 320 at 0.3413 and 360 at 0.3389, testing n_estimators 310 to refine the optimum around 320.", "subsample": 0.7, "n_estimators": 310})
+  OBS: val_pr_auc=0.3352 best=0.3413
+[run 1 step 18] THOUGHT: Testing 330 estimators to see if the peak lies slightly above 320 (0.3413) towards 360 (0.3389).
+  ACTION: evaluate_config({"min_child_weight": 3, "learning_rate": 0.035, "max_depth": 7, "rationale": "Testing 330 estimators to see if the peak lies slightly above 320 (0.3413) towards 360 (0.3389).", "n_estimators": 330, "colsample_bytree": 0.65, "reg_alpha": 0.2, "subsample": 0.7, "reg_lambda": 5})
+  OBS: val_pr_auc=0.3395 best=0.3413
+[run 1 step 19] THOUGHT: Testing lower reg_lambda (3.0 vs 5.0) on the best configuration (Trial 14: 0.3413) to see if milder L2 regularization improves fitting.
+  ACTION: evaluate_config({"n_estimators": 320, "reg_alpha": 0.2, "subsample": 0.7, "reg_lambda": 3, "learning_rate": 0.035, "colsample_bytree": 0.65, "min_child_weight": 3, "rationale": "Testing lower reg_lambda (3.0 vs 5.0) on the best configuration (Trial 14: 0.3413) to see if milder L2 regularization improves fitting.", "max_depth": 7})
+  OBS: val_pr_auc=0.3298 best=0.3413
+[run 1 step 20] THOUGHT: Reg_lambda=3 dropped score significantly (0.3298 vs 0.3413 at 5.0); testing higher reg_lambda=7.0 to explore stronger L2 shrinkage.
+  ACTION: evaluate_config({"colsample_bytree": 0.65, "n_estimators": 320, "reg_lambda": 7, "rationale": "Reg_lambda=3 dropped score significantly (0.3298 vs 0.3413 at 5.0); testing higher reg_lambda=7.0 to explore stronger L2 shrinkage.", "min_child_weight": 3, "reg_alpha": 0.2, "subsample": 0.7, "max_depth": 7, "learning_rate": 0.035})
+  OBS: val_pr_auc=0.3340 best=0.3413
+[run 1 step 21] THOUGHT: With reg_lambda=5 confirmed optimal over 3 and 7, testing higher L1 regularization (reg_alpha=0.5 vs 0.2) to induce sparsity.
+  ACTION: evaluate_config({"max_depth": 7, "reg_alpha": 0.5, "min_child_weight": 3, "subsample": 0.7, "learning_rate": 0.035, "rationale": "With reg_lambda=5 confirmed optimal over 3 and 7, testing higher L1 regularization (reg_alpha=0.5 vs 0.2) to induce sparsity.", "reg_lambda": 5, "colsample_bytree": 0.65, "n_estimators": 320})
+  OBS: val_pr_auc=0.3359 best=0.3413
+[run 1 step 22] THOUGHT: Reg_alpha 0.5 decreased score to 0.3359; testing lower reg_alpha=0.1 to evaluate lighter L1 penalty around the best trial.
+  ACTION: evaluate_config({"min_child_weight": 3, "subsample": 0.7, "rationale": "Reg_alpha 0.5 decreased score to 0.3359; testing lower reg_alpha=0.1 to evaluate lighter L1 penalty around the best trial.", "n_estimators": 320, "learning_rate": 0.035, "reg_alpha": 0.1, "colsample_bytree": 0.65, "max_depth": 7, "reg_lambda": 5})
+  OBS: val_pr_auc=0.3393 best=0.3413
+[run 1 step 23] THOUGHT: Testing lower colsample_bytree (0.60 vs 0.65) on best Trial 14 configuration to check if more feature diversity helps.
+  ACTION: evaluate_config({"colsample_bytree": 0.6, "min_child_weight": 3, "subsample": 0.7, "reg_lambda": 5, "max_depth": 7, "learning_rate": 0.035, "rationale": "Testing lower colsample_bytree (0.60 vs 0.65) on best Trial 14 configuration to check if more feature diversity helps.", "reg_alpha": 0.2, "n_estimators": 320})
+  OBS: val_pr_auc=0.3281 best=0.3413
+[run 1 step 24] THOUGHT: Colsample 0.60 reduced performance (0.3281 vs 0.3413 at 0.65); testing colsample 0.70 to check the upper feature sampling side.
+  ACTION: evaluate_config({"reg_alpha": 0.2, "reg_lambda": 5, "rationale": "Colsample 0.60 reduced performance (0.3281 vs 0.3413 at 0.65); testing colsample 0.70 to check the upper feature sampling side.", "min_child_weight": 3, "max_depth": 7, "colsample_bytree": 0.7, "n_estimators": 320, "subsample": 0.7, "learning_rate": 0.035})
+  OBS: val_pr_auc=0.3413 best=0.3413
+[run 1 step 25] THOUGHT: Testing higher subsample ratio (0.80 vs 0.70) on Trial 14 setup to evaluate row sampling sensitivity.
+  ACTION: evaluate_config({"colsample_bytree": 0.65, "reg_alpha": 0.2, "n_estimators": 320, "reg_lambda": 5, "subsample": 0.8, "learning_rate": 0.035, "rationale": "Testing higher subsample ratio (0.80 vs 0.70) on Trial 14 setup to evaluate row sampling sensitivity.", "min_child_weight": 3, "max_depth": 7})
+  OBS: val_pr_auc=0.3283 best=0.3413
+[run 1 step 26] THOUGHT: Subsample 0.8 dropped sharply (0.3283); testing slightly lower subsample (0.65 vs 0.70) to see if more aggressive row bagging helps.
+  ACTION: evaluate_config({"learning_rate": 0.035, "n_estimators": 320, "reg_alpha": 0.2, "min_child_weight": 3, "reg_lambda": 5, "max_depth": 7, "rationale": "Subsample 0.8 dropped sharply (0.3283); testing slightly lower subsample (0.65 vs 0.70) to see if more aggressive row bagging helps.", "colsample_bytree": 0.65, "subsample": 0.65})
+  OBS: val_pr_auc=0.3367 best=0.3413
+[run 1 step 27] THOUGHT: Testing lower learning rate (0.030) with proportionally scaled trees (350) keeping optimal regularization and subsampling.
+  ACTION: evaluate_config({"max_depth": 7, "subsample": 0.7, "n_estimators": 350, "learning_rate": 0.03, "min_child_weight": 3, "rationale": "Testing lower learning rate (0.030) with proportionally scaled trees (350) keeping optimal regularization and subsampling.", "colsample_bytree": 0.65, "reg_alpha": 0.2, "reg_lambda": 5})
+  OBS: val_pr_auc=0.3344 best=0.3413
+[run 1 step 28] THOUGHT: Trial 4 showed depth 6 was very strong with few trees (0.3250 at 150); testing if depth 6 matches or exceeds depth 7 with 320 trees and optimal regularization.
+  ACTION: evaluate_config({"subsample": 0.7, "reg_alpha": 0.2, "rationale": "Trial 4 showed depth 6 was very strong with few trees (0.3250 at 150); testing if depth 6 matches or exceeds depth 7 with 320 trees and optimal regularization.", "n_estimators": 320, "learning_rate": 0.035, "colsample_bytree": 0.65, "min_child_weight": 3, "max_depth": 6, "reg_lambda": 5})
+  OBS: val_pr_auc=0.3256 best=0.3413
+[run 1 step 29] THOUGHT: Trial 23 matched Trial 14 (0.3413) at colsample 0.70; testing colsample 0.75 with 320 estimators to see if higher feature coverage improves performance.
+  ACTION: evaluate_config({"colsample_bytree": 0.75, "max_depth": 7, "min_child_weight": 3, "n_estimators": 320, "reg_alpha": 0.2, "reg_lambda": 5, "learning_rate": 0.035, "subsample": 0.7, "rationale": "Trial 23 matched Trial 14 (0.3413) at colsample 0.70; testing colsample 0.75 with 320 estimators to see if higher feature coverage improves performance."})
+  OBS: val_pr_auc=0.3275 best=0.3413
+[run 1 step 30] THOUGHT: Trial 14 (320 trees: 0.3413) is current best; testing 325 trees to pinpoint the peak between 320 and 330.
+  ACTION: evaluate_config({"reg_lambda": 5, "n_estimators": 325, "colsample_bytree": 0.65, "learning_rate": 0.035, "max_depth": 7, "rationale": "Trial 14 (320 trees: 0.3413) is current best; testing 325 trees to pinpoint the peak between 320 and 330.", "reg_alpha": 0.2, "subsample": 0.7, "min_child_weight": 3})
+  OBS: val_pr_auc=0.3402 best=0.3413
+[run 1 step 31] THOUGHT: Evaluating reg_lambda=5.5 near confirmed optimum (5.0) to test fine sensitivity of L2 penalty.
+  ACTION: evaluate_config({"subsample": 0.7, "rationale": "Evaluating reg_lambda=5.5 near confirmed optimum (5.0) to test fine sensitivity of L2 penalty.", "colsample_bytree": 0.65, "min_child_weight": 3, "reg_alpha": 0.2, "n_estimators": 320, "learning_rate": 0.035, "max_depth": 7, "reg_lambda": 5.5})
+  OBS: val_pr_auc=0.3344 best=0.3413
+[run 2 step 1] THOUGHT: 
+  ACTION: get_history({})
+  OBS: val_pr_auc=nan best=nan
+[run 2 step 2] THOUGHT: Initial moderate baseline configuration with medium depth and modest regularization to establish a PR-AUC reference.
+  ACTION: evaluate_config({"n_estimators": 150, "learning_rate": 0.05, "reg_lambda": 1, "rationale": "Initial moderate baseline configuration with medium depth and modest regularization to establish a PR-AUC reference.", "max_depth": 4, "min_child_weight": 3, "reg_alpha": 0.05, "subsample": 0.8, "colsample_bytree": 0.8})
+  OBS: val_pr_auc=0.3059 best=0.3059
+[run 2 step 3] THOUGHT: Trial 1 showed 0.3059 with depth 4; testing shallower depth (3) with higher min_child_weight (6) and lower learning rate to reduce overfitting on the 7% minority class.
+  ACTION: evaluate_config({"reg_alpha": 0.1, "learning_rate": 0.03, "subsample": 0.75, "colsample_bytree": 0.7, "reg_lambda": 2, "min_child_weight": 6, "max_depth": 3, "n_estimators": 250, "rationale": "Trial 1 showed 0.3059 with depth 4; testing shallower depth (3) with higher min_child_weight (6) and lower learning rate to reduce overfitting on the 7% minority class."})
+  OBS: val_pr_auc=0.2886 best=0.3059
+[run 2 step 4] THOUGHT: Trial 2 underperformed (0.2886) suggesting depth 3 was too restrictive; testing deeper trees (depth 6) with min_child_weight 2 to capture subtle overtake interaction dynamics.
+  ACTION: evaluate_config({"subsample": 0.85, "colsample_bytree": 0.75, "min_child_weight": 2, "n_estimators": 160, "reg_lambda": 1.5, "max_depth": 6, "reg_alpha": 0.1, "learning_rate": 0.04, "rationale": "Trial 2 underperformed (0.2886) suggesting depth 3 was too restrictive; testing deeper trees (depth 6) with min_child_weight 2 to capture subtle overtake interaction dynamics."})
+  OBS: val_pr_auc=0.3207 best=0.3207
+[run 2 step 5] THOUGHT: Trial 3 improved to 0.3207 with depth 6; testing depth 7 with slightly increased regularization (reg_lambda=2.0) to see if deeper interaction capacity further boosts PR-AUC.
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "rationale": "Trial 3 improved to 0.3207 with depth 6; testing depth 7 with slightly increased regularization (reg_lambda=2.0) to see if deeper interaction capacity further boosts PR-AUC.", "max_depth": 7, "reg_lambda": 2, "min_child_weight": 2, "learning_rate": 0.035, "subsample": 0.8, "n_estimators": 180, "reg_alpha": 0.2})
+  OBS: val_pr_auc=0.3204 best=0.3207
+[run 2 step 6] THOUGHT: Trials 3 and 4 peaked near 0.3207 at depths 6-7; testing depth 5 to determine whether intermediate tree depth retains capacity while reducing variance.
+  ACTION: evaluate_config({"learning_rate": 0.04, "colsample_bytree": 0.75, "reg_alpha": 0.1, "max_depth": 5, "rationale": "Trials 3 and 4 peaked near 0.3207 at depths 6-7; testing depth 5 to determine whether intermediate tree depth retains capacity while reducing variance.", "n_estimators": 170, "min_child_weight": 2, "reg_lambda": 1.5, "subsample": 0.85})
+  OBS: val_pr_auc=0.3114 best=0.3207
+[run 2 step 7] THOUGHT: Depth 6 was best in Trial 3; testing min_child_weight=1 to see if finer leaf partitioning helps isolate rare successful overtake conditions.
+  ACTION: evaluate_config({"reg_lambda": 1.5, "rationale": "Depth 6 was best in Trial 3; testing min_child_weight=1 to see if finer leaf partitioning helps isolate rare successful overtake conditions.", "learning_rate": 0.04, "n_estimators": 160, "min_child_weight": 1, "subsample": 0.85, "max_depth": 6, "reg_alpha": 0.1, "colsample_bytree": 0.75})
+  OBS: val_pr_auc=0.3172 best=0.3207
+[run 2 step 8] THOUGHT: Trial 6 showed min_child_weight=1 slightly overfit (0.3172 vs 0.3207); testing min_child_weight=3 to see if slightly more conservative leaves improve generalization.
+  ACTION: evaluate_config({"n_estimators": 160, "colsample_bytree": 0.75, "reg_alpha": 0.1, "reg_lambda": 1.5, "learning_rate": 0.04, "rationale": "Trial 6 showed min_child_weight=1 slightly overfit (0.3172 vs 0.3207); testing min_child_weight=3 to see if slightly more conservative leaves improve generalization.", "subsample": 0.85, "min_child_weight": 3, "max_depth": 6})
+  OBS: val_pr_auc=0.3162 best=0.3207
+[run 2 step 9] THOUGHT: With depth 6 achieving 0.3207 and depth 7 achieving 0.3204, testing depth 8 with slightly lower learning rate and stronger L2 regularization to see if deeper trees continue the trend or overfit.
+  ACTION: evaluate_config({"max_depth": 8, "min_child_weight": 2, "learning_rate": 0.03, "subsample": 0.8, "rationale": "With depth 6 achieving 0.3207 and depth 7 achieving 0.3204, testing depth 8 with slightly lower learning rate and stronger L2 regularization to see if deeper trees continue the trend or overfit.", "n_estimators": 180, "colsample_bytree": 0.7, "reg_lambda": 2.5, "reg_alpha": 0.2})
+  OBS: val_pr_auc=0.3256 best=0.3256
+[run 2 step 10] THOUGHT: Trial 8 reached 0.3256 at depth 8 with min_child_weight=2; testing min_child_weight=3 to see if slight regularization on deeper leaves prevents overfitting.
+  ACTION: evaluate_config({"colsample_bytree": 0.7, "learning_rate": 0.03, "min_child_weight": 3, "n_estimators": 180, "max_depth": 8, "reg_lambda": 2.5, "reg_alpha": 0.2, "rationale": "Trial 8 reached 0.3256 at depth 8 with min_child_weight=2; testing min_child_weight=3 to see if slight regularization on deeper leaves prevents overfitting.", "subsample": 0.8})
+  OBS: val_pr_auc=0.3268 best=0.3268
+[run 2 step 11] THOUGHT: Moving min_child_weight from 2 to 3 increased PR-AUC from 0.3256 to 0.3268; testing min_child_weight=4 to see if further leaf constraint continues the upward trend.
+  ACTION: evaluate_config({"reg_alpha": 0.2, "learning_rate": 0.03, "max_depth": 8, "reg_lambda": 2.5, "subsample": 0.8, "colsample_bytree": 0.7, "n_estimators": 180, "min_child_weight": 4, "rationale": "Moving min_child_weight from 2 to 3 increased PR-AUC from 0.3256 to 0.3268; testing min_child_weight=4 to see if further leaf constraint continues the upward trend."})
+  OBS: val_pr_auc=0.3132 best=0.3268
+[run 2 step 12] THOUGHT: Trial 9 is best at 0.3268 with lr=0.03/180 trees; lowering learning rate to 0.02 with 260 trees provides finer gradient steps to prevent overshoot.
+  ACTION: evaluate_config({"rationale": "Trial 9 is best at 0.3268 with lr=0.03/180 trees; lowering learning rate to 0.02 with 260 trees provides finer gradient steps to prevent overshoot.", "reg_alpha": 0.2, "reg_lambda": 2.5, "min_child_weight": 3, "n_estimators": 260, "learning_rate": 0.02, "subsample": 0.8, "colsample_bytree": 0.7, "max_depth": 8})
+  OBS: val_pr_auc=0.3301 best=0.3301
+[run 2 step 13] THOUGHT: Trial 11 reached 0.3301 by reducing lr to 0.02; testing lr=0.015 with 340 estimators to test if even smaller learning steps yield better minority class probability calibration.
+  ACTION: evaluate_config({"learning_rate": 0.015, "n_estimators": 340, "rationale": "Trial 11 reached 0.3301 by reducing lr to 0.02; testing lr=0.015 with 340 estimators to test if even smaller learning steps yield better minority class probability calibration.", "subsample": 0.8, "colsample_bytree": 0.7, "reg_lambda": 2.5, "reg_alpha": 0.2, "min_child_weight": 3, "max_depth": 8})
+  OBS: val_pr_auc=0.3254 best=0.3301
+[run 2 step 14] THOUGHT: Trial 11 peaked at 0.3301 with 260 estimators while 340 estimators decayed to 0.3254; testing 220 estimators to see if fewer trees at lr=0.02 avoids late-stage overconfidence.
+  ACTION: evaluate_config({"rationale": "Trial 11 peaked at 0.3301 with 260 estimators while 340 estimators decayed to 0.3254; testing 220 estimators to see if fewer trees at lr=0.02 avoids late-stage overconfidence.", "colsample_bytree": 0.7, "subsample": 0.8, "min_child_weight": 3, "n_estimators": 220, "reg_alpha": 0.2, "learning_rate": 0.02, "reg_lambda": 2.5, "max_depth": 8})
+  OBS: val_pr_auc=0.3331 best=0.3331
+[run 2 step 15] THOUGHT: Trial 13 improved to 0.3331 at 220 estimators; checking 190 estimators to pinpoint the optimal tree stopping point at lr=0.02.
+  ACTION: evaluate_config({"max_depth": 8, "reg_alpha": 0.2, "subsample": 0.8, "colsample_bytree": 0.7, "learning_rate": 0.02, "reg_lambda": 2.5, "n_estimators": 190, "rationale": "Trial 13 improved to 0.3331 at 220 estimators; checking 190 estimators to pinpoint the optimal tree stopping point at lr=0.02.", "min_child_weight": 3})
+  OBS: val_pr_auc=0.3290 best=0.3331
+[run 2 step 16] THOUGHT: Trial 13 was best at 220 trees (0.3331) while 190 was 0.3290 and 260 was 0.3301; testing 230 trees to evaluate if the true optimum is slightly above 220.
+  ACTION: evaluate_config({"reg_alpha": 0.2, "learning_rate": 0.02, "rationale": "Trial 13 was best at 220 trees (0.3331) while 190 was 0.3290 and 260 was 0.3301; testing 230 trees to evaluate if the true optimum is slightly above 220.", "n_estimators": 230, "subsample": 0.8, "colsample_bytree": 0.7, "max_depth": 8, "reg_lambda": 2.5, "min_child_weight": 3})
+  OBS: val_pr_auc=0.3326 best=0.3331
+[run 2 step 17] THOUGHT: Trial 13 established 0.3331 at colsample 0.7; testing colsample 0.6 to see if stronger feature subsampling decorrelates deep trees and improves PR-AUC.
+  ACTION: evaluate_config({"reg_lambda": 2.5, "min_child_weight": 3, "rationale": "Trial 13 established 0.3331 at colsample 0.7; testing colsample 0.6 to see if stronger feature subsampling decorrelates deep trees and improves PR-AUC.", "max_depth": 8, "reg_alpha": 0.2, "subsample": 0.8, "learning_rate": 0.02, "colsample_bytree": 0.6, "n_estimators": 220})
+  OBS: val_pr_auc=0.3193 best=0.3331
+[run 2 step 18] THOUGHT: colsample 0.6 degraded performance to 0.3193; testing colsample 0.8 to see if higher feature availability improves decision boundaries.
+  ACTION: evaluate_config({"reg_alpha": 0.2, "n_estimators": 220, "min_child_weight": 3, "learning_rate": 0.02, "colsample_bytree": 0.8, "reg_lambda": 2.5, "rationale": "colsample 0.6 degraded performance to 0.3193; testing colsample 0.8 to see if higher feature availability improves decision boundaries.", "max_depth": 8, "subsample": 0.8})
+  OBS: val_pr_auc=0.3271 best=0.3331
+[run 2 step 19] THOUGHT: colsample 0.7 is optimal between 0.6 and 0.8; testing subsample 0.85 (vs 0.8 in Trial 13) to see if more row coverage reduces gradient variance.
+  ACTION: evaluate_config({"reg_lambda": 2.5, "max_depth": 8, "reg_alpha": 0.2, "subsample": 0.85, "rationale": "colsample 0.7 is optimal between 0.6 and 0.8; testing subsample 0.85 (vs 0.8 in Trial 13) to see if more row coverage reduces gradient variance.", "min_child_weight": 3, "colsample_bytree": 0.7, "learning_rate": 0.02, "n_estimators": 220})
+  OBS: val_pr_auc=0.3257 best=0.3331
+[run 2 step 20] THOUGHT: subsample 0.85 underperformed 0.8 (0.3257 vs 0.3331); testing subsample 0.75 to check if slightly more bagging noise aids generalization.
+  ACTION: evaluate_config({"min_child_weight": 3, "subsample": 0.75, "colsample_bytree": 0.7, "n_estimators": 220, "learning_rate": 0.02, "reg_lambda": 2.5, "reg_alpha": 0.2, "max_depth": 8, "rationale": "subsample 0.85 underperformed 0.8 (0.3257 vs 0.3331); testing subsample 0.75 to check if slightly more bagging noise aids generalization."})
+  OBS: val_pr_auc=0.3404 best=0.3404
+[run 2 step 21] THOUGHT: Lowering subsample to 0.75 improved PR-AUC to 0.3404; testing subsample 0.70 to see if slightly more bagging randomness continues the improvement.
+  ACTION: evaluate_config({"min_child_weight": 3, "colsample_bytree": 0.7, "rationale": "Lowering subsample to 0.75 improved PR-AUC to 0.3404; testing subsample 0.70 to see if slightly more bagging randomness continues the improvement.", "subsample": 0.7, "reg_lambda": 2.5, "reg_alpha": 0.2, "max_depth": 8, "n_estimators": 220, "learning_rate": 0.02})
+  OBS: val_pr_auc=0.3356 best=0.3404
+[run 2 step 22] THOUGHT: With subsample optimal at 0.75 yielding 0.3404, testing colsample 0.75 to see if slightly broader feature selection at each tree improves upon 0.70.
+  ACTION: evaluate_config({"min_child_weight": 3, "max_depth": 8, "learning_rate": 0.02, "subsample": 0.75, "reg_alpha": 0.2, "reg_lambda": 2.5, "n_estimators": 220, "colsample_bytree": 0.75, "rationale": "With subsample optimal at 0.75 yielding 0.3404, testing colsample 0.75 to see if slightly broader feature selection at each tree improves upon 0.70."})
+  OBS: val_pr_auc=0.3290 best=0.3404
+[run 2 step 23] THOUGHT: colsample 0.75 degraded to 0.3290 while 0.70 gave 0.3404; testing colsample 0.65 to see if slightly lower feature fraction is better.
+  ACTION: evaluate_config({"n_estimators": 220, "reg_lambda": 2.5, "min_child_weight": 3, "subsample": 0.75, "rationale": "colsample 0.75 degraded to 0.3290 while 0.70 gave 0.3404; testing colsample 0.65 to see if slightly lower feature fraction is better.", "max_depth": 8, "learning_rate": 0.02, "reg_alpha": 0.2, "colsample_bytree": 0.65})
+  OBS: val_pr_auc=0.3404 best=0.3404
+[run 2 step 24] THOUGHT: Testing stronger L2 regularization (reg_lambda=5.0) on top of Trial 19 to see if penalizing large leaf weights further prevents minority class overconfidence.
+  ACTION: evaluate_config({"rationale": "Testing stronger L2 regularization (reg_lambda=5.0) on top of Trial 19 to see if penalizing large leaf weights further prevents minority class overconfidence.", "subsample": 0.75, "max_depth": 8, "reg_alpha": 0.2, "colsample_bytree": 0.7, "n_estimators": 220, "min_child_weight": 3, "reg_lambda": 5, "learning_rate": 0.02})
+  OBS: val_pr_auc=0.3323 best=0.3404
+[run 2 step 25] THOUGHT: reg_lambda=5.0 dropped performance to 0.3323; testing lower reg_lambda=1.5 to check if less L2 shrinkage preserves predictive capacity.
+  ACTION: evaluate_config({"min_child_weight": 3, "max_depth": 8, "subsample": 0.75, "n_estimators": 220, "colsample_bytree": 0.7, "reg_lambda": 1.5, "learning_rate": 0.02, "reg_alpha": 0.2, "rationale": "reg_lambda=5.0 dropped performance to 0.3323; testing lower reg_lambda=1.5 to check if less L2 shrinkage preserves predictive capacity."})
+  OBS: val_pr_auc=0.3365 best=0.3404
+[run 2 step 26] THOUGHT: With reg_lambda optimal around 2.5, testing higher L1 regularization (reg_alpha=0.5) to promote feature sparsity across the deep trees.
+  ACTION: evaluate_config({"rationale": "With reg_lambda optimal around 2.5, testing higher L1 regularization (reg_alpha=0.5) to promote feature sparsity across the deep trees.", "min_child_weight": 3, "reg_lambda": 2.5, "colsample_bytree": 0.7, "max_depth": 8, "reg_alpha": 0.5, "n_estimators": 220, "learning_rate": 0.02, "subsample": 0.75})
+  OBS: val_pr_auc=0.3409 best=0.3409
+[run 2 step 27] THOUGHT: Trial 25 reached a new best 0.3409 with reg_alpha=0.5; testing reg_alpha=0.8 to see if stronger L1 pruning further improves signal-to-noise ratio.
+  ACTION: evaluate_config({"reg_alpha": 0.8, "colsample_bytree": 0.7, "max_depth": 8, "reg_lambda": 2.5, "subsample": 0.75, "n_estimators": 220, "min_child_weight": 3, "learning_rate": 0.02, "rationale": "Trial 25 reached a new best 0.3409 with reg_alpha=0.5; testing reg_alpha=0.8 to see if stronger L1 pruning further improves signal-to-noise ratio."})
+  OBS: val_pr_auc=0.3334 best=0.3409
+[run 2 step 28] THOUGHT: reg_alpha=0.8 degraded performance to 0.3334 while 0.5 was 0.3409; testing intermediate reg_alpha=0.35 to explore between 0.2 and 0.5.
+  ACTION: evaluate_config({"learning_rate": 0.02, "rationale": "reg_alpha=0.8 degraded performance to 0.3334 while 0.5 was 0.3409; testing intermediate reg_alpha=0.35 to explore between 0.2 and 0.5.", "reg_alpha": 0.35, "subsample": 0.75, "n_estimators": 220, "min_child_weight": 3, "colsample_bytree": 0.7, "max_depth": 8, "reg_lambda": 2.5})
+  OBS: val_pr_auc=0.3398 best=0.3409
+[run 2 step 29] THOUGHT: With reg_alpha=0.5 showing peak performance (0.3409), testing 240 estimators to see if the added L1 regularization allows slightly more boosting iterations.
+  ACTION: evaluate_config({"learning_rate": 0.02, "reg_alpha": 0.5, "n_estimators": 240, "rationale": "With reg_alpha=0.5 showing peak performance (0.3409), testing 240 estimators to see if the added L1 regularization allows slightly more boosting iterations.", "max_depth": 8, "colsample_bytree": 0.7, "min_child_weight": 3, "subsample": 0.75, "reg_lambda": 2.5})
+  OBS: val_pr_auc=0.3407 best=0.3409
+[run 2 step 30] THOUGHT: 220 trees yielded 0.3409 and 240 gave 0.3407; testing 210 trees to see if early stopping at 210 provides a sharper peak.
+  ACTION: evaluate_config({"reg_lambda": 2.5, "min_child_weight": 3, "n_estimators": 210, "subsample": 0.75, "learning_rate": 0.02, "colsample_bytree": 0.7, "rationale": "220 trees yielded 0.3409 and 240 gave 0.3407; testing 210 trees to see if early stopping at 210 provides a sharper peak.", "max_depth": 8, "reg_alpha": 0.5})
+  OBS: val_pr_auc=0.3392 best=0.3409
+[run 2 step 31] THOUGHT: Testing slightly softer L2 regularization (reg_lambda=2.0) with optimal reg_alpha=0.5 and subsample=0.75 to balance L1 feature selection and weight shrinkage.
+  ACTION: evaluate_config({"reg_lambda": 2, "subsample": 0.75, "learning_rate": 0.02, "reg_alpha": 0.5, "colsample_bytree": 0.7, "n_estimators": 220, "max_depth": 8, "rationale": "Testing slightly softer L2 regularization (reg_lambda=2.0) with optimal reg_alpha=0.5 and subsample=0.75 to balance L1 feature selection and weight shrinkage.", "min_child_weight": 3})
+  OBS: val_pr_auc=0.3387 best=0.3409

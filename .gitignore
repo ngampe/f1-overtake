@@ -1,0 +1,25 @@
+#fastF1 raw telemetry cache
+ff1cache/
+
+#python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+#editor
+.DS_Store
+.vscode/
+.idea/
+
+#scratch runs
+data_*/
+results_mocktest/
+results_agent_v1/
+results_test/
+
+#secrets
+.env
+data/*.pkl
+results_demo/
